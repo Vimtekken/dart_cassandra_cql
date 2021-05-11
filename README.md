@@ -12,7 +12,7 @@ add the following dependency to install this plugin:\
 ```yaml
 dependency:
   dart_cassandra_cql:
-    git: https://github.com/Sparks1998/dart_cassandra_cql
+    git: https://github.com/Vimtekken/dart_cassandra_cql
 ```
 
 # Features
