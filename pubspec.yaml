@@ -6,7 +6,7 @@ homepage: https://github.com/achilleasa/dart_cassandra_cql
 environment:
     sdk: '>=2.0.0 <3.0.0'
 dependencies:
-  uuid: any
+  uuid: 2.2.2
   collection: any
   logging: any
 dev_dependencies:
