@@ -1,4 +1,4 @@
-name: dart_cassandra_cql_vimtekken
+name: dart_cassandra_cql
 version: 0.3.0
 author: Achilleas Anagnostopoulos
 description: Dart driver for apache Cassandra
