@@ -11,7 +11,7 @@ class Uuid {
   /**
    * Construct a [Uuid] from a the input [bytes] list
    */
-  Uuid.fromBytes(List<int> bytes) : value = _uuidFactory.unparse(bytes);
+  Uuid.fromBytes(List<int> bytes) : value = _uuidImpl.Uuid.unparse(bytes);
 
   /**
    * Create a V4 (randomised) uuid
@@ -40,5 +40,5 @@ class Uuid {
    * Convert uuid to a [Uint8List] byte list
    */
 
-  get bytes => Uint8List.fromList(_uuidFactory.parse(value));
+  get bytes => Uint8List.fromList(_uuidImpl.Uuid.parse(value));
 }
