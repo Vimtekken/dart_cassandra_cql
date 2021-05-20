@@ -8,7 +8,9 @@ class ChunkedInputReader {
    * Add a [chunk] to the buffer queue
    */
 
-  void add(List<int> chunk) => _bufferedChunks.add(chunk);
+  void add(Uint8List? chunk) {
+    if (chunk != null) _bufferedChunks.add(chunk);
+  }
 
   /**
    * Clear buffer
@@ -43,7 +45,7 @@ class ChunkedInputReader {
    * and will return the total number of bytes written
    */
 
-  int read(List<int>? destination, int count, [int offset = 0]) {
+  int read(List<int?>? destination, int count, [int offset = 0]) {
     int writeOffset = offset;
     while (count > 0) {
       // If we ran out of buffers we are done

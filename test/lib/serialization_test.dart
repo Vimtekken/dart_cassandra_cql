@@ -650,7 +650,7 @@ main({bool enableLogger: true}) {
 
       test("CUSTOM", () {
         Object input = new Uint8List.fromList(
-            new List<int>.generate(10, (int index) => index * 2));
+            List<int>.generate(10, (int index) => index * 2));
         TypeSpec type = new TypeSpec(DataType.CUSTOM);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
@@ -661,7 +661,7 @@ main({bool enableLogger: true}) {
 
       test("BLOB", () {
         Object input = new Uint8List.fromList(
-            new List<int>.generate(10, (int index) => index * 2));
+            List<int>.generate(10, (int index) => index * 2));
         TypeSpec type = new TypeSpec(DataType.BLOB);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =

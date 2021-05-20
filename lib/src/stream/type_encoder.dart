@@ -122,9 +122,9 @@ class TypeEncoder {
 
     // Write the length followed by a string for each K,V
     writeLength(value.length, size);
-    value.forEach((Object v) {
+    value.forEach((dynamic v) {
       writeString(v.toString(), size);
-    } as void Function(dynamic));
+    });
   }
 
   void writeStringMap(Map<String, String?> value, SizeType size) {

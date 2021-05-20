@@ -1,5 +1,7 @@
 library dart_cassandra_cql.tests.chunked_input_reader;
 
+import 'dart:typed_data';
+
 import "package:test/test.dart";
 
 import '../../lib/src/stream.dart';
@@ -8,22 +10,22 @@ main({bool enableLogger: true}) {
   group("Chunked input reader:", () {
     test("add chunks", () {
       ChunkedInputReader reader = new ChunkedInputReader();
-      reader.add([1, 2, 3]);
-      reader.add([4]);
+      reader.add(Uint8List.fromList([1, 2, 3]));
+      reader.add(Uint8List.fromList([4]));
       expect(reader.length, equals(4));
     });
 
     test("peek next byte", () {
       ChunkedInputReader reader = new ChunkedInputReader();
-      reader.add([1, 2, 3]);
-      reader.add([4]);
+      reader.add(Uint8List.fromList([1, 2, 3]));
+      reader.add(Uint8List.fromList([4]));
       expect(reader.peekNextByte(), equals(1));
     });
 
     test("clear", () {
       ChunkedInputReader reader = new ChunkedInputReader();
-      reader.add([1, 2, 3]);
-      reader.add([4]);
+      reader.add(Uint8List.fromList([1, 2, 3]));
+      reader.add(Uint8List.fromList([4]));
       expect(reader.length, equals(4));
       reader.clear();
       expect(reader.length, equals(0));
@@ -31,12 +33,12 @@ main({bool enableLogger: true}) {
 
     test("read", () {
       ChunkedInputReader reader = new ChunkedInputReader();
-      reader.add([1, 2, 3]);
-      reader.add([4]);
+      reader.add(Uint8List.fromList([1, 2, 3]));
+      reader.add(Uint8List.fromList([4]));
 
       List<int?> buffer = List.filled(3, null);
       expect(reader.length, equals(4));
-      reader.read(buffer as List<int>, 3);
+      reader.read(buffer, 3);
       expect(reader.length, equals(1));
       expect(buffer, equals([1, 2, 3]));
 
@@ -47,8 +49,8 @@ main({bool enableLogger: true}) {
 
     test("skip", () {
       ChunkedInputReader reader = new ChunkedInputReader();
-      reader.add([1, 2, 3]);
-      reader.add([4, 5]);
+      reader.add(Uint8List.fromList([1, 2, 3]));
+      reader.add(Uint8List.fromList([4, 5]));
 
       expect(reader.length, equals(5));
       reader.skip(1);
@@ -58,7 +60,7 @@ main({bool enableLogger: true}) {
       expect(reader.length, equals(2));
 
       List<int?> buffer = List.filled(2, null);
-      reader.read(buffer as List<int>, 2);
+      reader.read(buffer, 2);
       expect(reader.length, equals(0));
       expect(buffer, equals([4, 5]));
     });

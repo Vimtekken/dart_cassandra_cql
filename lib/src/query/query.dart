@@ -291,9 +291,11 @@ class Query extends QueryInterface {
       return buffer;
     } else if (value is Map) {
       Map map = LinkedHashMap();
-      value.forEach((Object k, Object v) {
+      void kvMap(dynamic k, dynamic v) {
         map[_typeToString(k)] = _typeToString(v);
-      } as void Function(dynamic, dynamic));
+      }
+
+      value.forEach(kvMap);
       return map;
     } else {
       return value.toString();

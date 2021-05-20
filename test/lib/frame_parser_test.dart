@@ -1,6 +1,7 @@
 library dart_cassandra_cql.tests.frame_grabber;
 
 import "dart:async";
+import 'dart:typed_data';
 import "package:test/test.dart";
 import "mocks/mocks.dart" as mock;
 
@@ -14,13 +15,13 @@ main({bool enableLogger: true}) {
   }
 
   FrameWriter writer;
-  late StreamController<List<int>> streamController;
+  late StreamController<Uint8List> streamController;
   late Stream<Frame> frameGrabber;
 
   group("Frame parser (V2):", () {
     setUp(() {
       writer = new FrameWriter(0, ProtocolVersion.V2);
-      streamController = new StreamController<List<int>>(sync: false);
+      streamController = new StreamController<Uint8List>(sync: false);
       frameGrabber =
           streamController.stream.transform(new FrameParser().transformer);
     });
