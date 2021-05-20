@@ -29,7 +29,7 @@ void writeMessage(Sink targetSink, int opcode,
     HeaderVersion headerVersion: HeaderVersion.REQUEST_V2,
     int streamId: 0,
     int flags: 0,
-    int overrideLength,
+    int? overrideLength,
     List<int> data: const []}) {
   TypeEncoder typeEncoder = new TypeEncoder(protocolVersion);
 
@@ -60,17 +60,17 @@ void writeMessage(Sink targetSink, int opcode,
         offset++, overrideLength != null ? overrideLength : data.length);
 
   // Prepend the header to the writer buffer queue
-  typeEncoder.writer.addFirst(buf);
-  typeEncoder.writer.addLast(new Uint8List.fromList(data));
+  typeEncoder.writer!.addFirst(buf);
+  typeEncoder.writer!.addLast(new Uint8List.fromList(data));
 
   // Pipe everything to the sink
-  typeEncoder.writer.pipe(targetSink);
+  typeEncoder.writer!.pipe(targetSink);
 }
 
 TypeDecoder createDecoder(TypeEncoder fromEncoder) {
   // Pipe encoded data to a reader
   ChunkedInputReader reader = new ChunkedInputReader();
-  fromEncoder.writer.chunks.forEach(reader.add);
+  fromEncoder.writer!.chunks.forEach(reader.add as void Function(Uint8List?));
 
   // Read to a buffer
   Uint8List buffer = new Uint8List(reader.length);
@@ -82,13 +82,13 @@ TypeDecoder createDecoder(TypeEncoder fromEncoder) {
 }
 
 class MockServer {
-  Compression _compression;
-  ServerSocket _server;
+  Compression? _compression;
+  ServerSocket? _server;
   List<Socket> clients = [];
-  List<String> _replayDumpFileList;
-  List<String> _replayAuthDumpFileList;
-  String _pathToDumps;
-  Duration responseDelay;
+  List<String>? _replayDumpFileList;
+  List<String>? _replayAuthDumpFileList;
+  String? _pathToDumps;
+  Duration? responseDelay;
   Future _replayFuture = new Future.value();
 
   MockServer() {
@@ -110,14 +110,16 @@ class MockServer {
 
     if (_server != null) {
       mockLogger
-          .info("Shutting down server [${_server.address}:${_server.port}]");
+          .info("Shutting down server [${_server!.address}:${_server!.port}]");
 
       List<Future> cleanupFutures = []
         ..add(_replayFuture)
-        ..addAll(
-            clients.map((Socket client) async => await client.destroy()))
-        ..add(_server.close().then((_) =>
+        ..add(_server!.close().then((_) =>
             new Future.delayed(new Duration(milliseconds: 20), () => true)));
+
+      for (final client in clients) {
+        client.destroy();
+      }
 
       clients.clear();
       _server = null;
@@ -165,30 +167,30 @@ class MockServer {
         payload.lengthInBytes - headerView.lengthInBytes);
 
     // Compress body
-    Uint8List compressedBody = getCodec(_compression.value).encode(bodyView);
+    Uint8List? compressedBody = getCodec(_compression!.value)!.encode(bodyView);
 
     // Assemble compressed payload:
-    encoder.writer.addLast(compressedBody);
+    encoder.writer!.addLast(compressedBody);
 
     // Toggle header compression flag and update body size
     headerView.setUint8(
         1, headerView.getUint8(1) | HeaderFlag.COMPRESSION.value);
     headerView.setUint32(
-        version == ProtocolVersion.V2 ? 4 : 5, encoder.writer.lengthInBytes);
+        version == ProtocolVersion.V2 ? 4 : 5, encoder.writer!.lengthInBytes);
 
     // Prepend header to writer blocks
-    encoder.writer.addFirst(
+    encoder.writer!.addFirst(
         new Uint8List.view(headerView.buffer, 0, headerView.lengthInBytes));
 
     // concat everything together and cleanup
-    Uint8List compressedOutput = encoder.writer.joinChunks();
-    encoder.writer.clear();
+    Uint8List compressedOutput = encoder.writer!.joinChunks();
+    encoder.writer!.clear();
     return compressedOutput;
   }
 
-  Uint8List _patchStreamId(List<int> originalPayload, int streamId) {
+  Uint8List _patchStreamId(List<int> originalPayload, int? streamId) {
     if (streamId == null) {
-      return originalPayload;
+      return originalPayload as Uint8List;
     }
     Uint8List payload = new Uint8List.fromList(originalPayload);
 
@@ -215,7 +217,7 @@ class MockServer {
     return payload;
   }
 
-  Future replayFile(int clientIndex, String filename, [int streamId = null]) {
+  Future replayFile(int clientIndex, String filename, [int? streamId = null]) {
     Future onReplay() {
       if (clientIndex > clients.length - 1) {
         throw new ArgumentError("Invalid client index");
@@ -231,7 +233,7 @@ class MockServer {
 
     return _replayFuture.then((_) {
       return responseDelay != null
-          ? new Future.delayed(responseDelay, onReplay)
+          ? new Future.delayed(responseDelay!, onReplay)
           : onReplay();
     });
   }
@@ -243,14 +245,14 @@ class MockServer {
     ServerSocket.bind(host, port).then((ServerSocket server) {
       _server = server;
       mockLogger.info("[$host:$port] Listening for incoming connections");
-      _server.listen(_handleConnection);
+      _server!.listen(_handleConnection);
       completer.complete();
     });
 
     return completer.future;
   }
 
-  void setCompression(Compression compressionAlgo) {
+  void setCompression(Compression? compressionAlgo) {
     this._compression = compressionAlgo;
   }
 
@@ -265,20 +267,22 @@ class MockServer {
   void _handleClientFrame(Socket client, Frame frame) {
     //mockLogger.fine("Client [${client.remoteAddress.host}:${client.remotePort}][SID: ${frame.header.streamId}] sent ${Opcode.nameOf(frame.header.opcode)} frame with len 0x${frame.header.length.toRadixString(16)}]");
     // Complete handshake and event registration messages
-    if (frame.header.opcode == Opcode.STARTUP &&
-        (_replayAuthDumpFileList == null || _replayAuthDumpFileList.isEmpty)) {
-      writeMessage(client, Opcode.READY.value, streamId: frame.header.streamId);
-    } else if (frame.header.opcode == Opcode.REGISTER) {
-      writeMessage(client, Opcode.READY.value, streamId: frame.header.streamId);
+    if (frame.header!.opcode == Opcode.STARTUP &&
+        (_replayAuthDumpFileList == null || _replayAuthDumpFileList!.isEmpty)) {
+      writeMessage(client, Opcode.READY.value,
+          streamId: frame.header!.streamId);
+    } else if (frame.header!.opcode == Opcode.REGISTER) {
+      writeMessage(client, Opcode.READY.value,
+          streamId: frame.header!.streamId);
     } else if (_replayAuthDumpFileList != null &&
-        !_replayAuthDumpFileList.isEmpty) {
+        !_replayAuthDumpFileList!.isEmpty) {
       // Respond with the next payload in replay list
       _replayFuture = replayFile(clients.indexOf(client),
-          _replayAuthDumpFileList.removeAt(0), frame.header.streamId);
-    } else if (_replayDumpFileList != null && !_replayDumpFileList.isEmpty) {
+          _replayAuthDumpFileList!.removeAt(0), frame.header!.streamId);
+    } else if (_replayDumpFileList != null && !_replayDumpFileList!.isEmpty) {
       // Respond with the next payload in replay list
       _replayFuture = replayFile(clients.indexOf(client),
-          _replayDumpFileList.removeAt(0), frame.header.streamId);
+          _replayDumpFileList!.removeAt(0), frame.header!.streamId);
     }
   }
 
@@ -295,7 +299,7 @@ class MockServer {
 
     client
         .transform(new FrameParser().transformer)
-        .transform(new FrameDecompressor(_compression).transformer)
+        .transform(new FrameDecompressor(_compression!).transformer)
         .listen((frame) => _handleClientFrame(client, frame),
             onError: (err, trace) => _handleClientError(client, err, trace));
   }
@@ -314,7 +318,8 @@ class MockAuthenticator extends Authenticator {
     return "com.achilleasa.FooAuthenticator";
   }
 
-  Uint8List answerChallenge(Uint8List challenge) {
+  @override
+  Uint8List? answerChallenge(Uint8List? challenge) {
     return null;
   }
 }

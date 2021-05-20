@@ -37,7 +37,7 @@ class DataType extends Enum<int> {
   get isCollection => this == LIST || this == SET || this == MAP;
 
   static DataType valueOf(int value) {
-    DataType fromValue = value == CUSTOM._value
+    DataType? fromValue = value == CUSTOM._value
         ? CUSTOM
         : value == ASCII._value
             ? ASCII
@@ -63,7 +63,8 @@ class DataType extends Enum<int> {
                                                     ? TIMESTAMP
                                                     : value == UUID._value
                                                         ? UUID
-                                                        : value == VARCHAR._value
+                                                        : value ==
+                                                                VARCHAR._value
                                                             ? VARCHAR
                                                             : value ==
                                                                     VARINT
@@ -74,14 +75,21 @@ class DataType extends Enum<int> {
                                                                             ._value
                                                                     ? TIMEUUID
                                                                     : value ==
-                                                                            INET._value
+                                                                            INET
+                                                                                ._value
                                                                         ? INET
                                                                         : value ==
                                                                                 LIST._value
                                                                             ? LIST
                                                                             : value == MAP._value
                                                                                 ? MAP
-                                                                                : value == SET._value ? SET : value == UDT._value ? UDT : value == TUPLE._value ? TUPLE : null;
+                                                                                : value == SET._value
+                                                                                    ? SET
+                                                                                    : value == UDT._value
+                                                                                        ? UDT
+                                                                                        : value == TUPLE._value
+                                                                                            ? TUPLE
+                                                                                            : null;
 
     if (fromValue == null) {
       throw ArgumentError(
@@ -90,8 +98,8 @@ class DataType extends Enum<int> {
     return fromValue;
   }
 
-  static String nameOf(DataType value) {
-    String name = value == CUSTOM
+  static String? nameOf(DataType? value) {
+    String? name = value == CUSTOM
         ? "CUSTOM"
         : value == ASCII
             ? "ASCII"
@@ -132,7 +140,13 @@ class DataType extends Enum<int> {
                                                                             ? "LIST"
                                                                             : value == MAP
                                                                                 ? "MAP"
-                                                                                : value == SET ? "SET" : value == UDT ? "UDT" : value == TUPLE ? "TUPLE" : null;
+                                                                                : value == SET
+                                                                                    ? "SET"
+                                                                                    : value == UDT
+                                                                                        ? "UDT"
+                                                                                        : value == TUPLE
+                                                                                            ? "TUPLE"
+                                                                                            : null;
     return name;
   }
 
@@ -141,14 +155,18 @@ class DataType extends Enum<int> {
    * the guessed [DataType] or null if type cannot be guessed
    */
 
-  static DataType guessForValue(Object value) {
+  static DataType? guessForValue(Object value) {
     if (value is bool) {
       return BOOLEAN;
     } else if (value is BigInt) {
       return VARINT;
     } else if (value is int) {
       int v = value;
-      return v.bitLength <= 32 ? INT : v.bitLength <= 64 ? BIGINT : VARINT;
+      return v.bitLength <= 32
+          ? INT
+          : v.bitLength <= 64
+              ? BIGINT
+              : VARINT;
     } else if (value is num) {
       return DOUBLE;
     } else if (value is Uuid ||

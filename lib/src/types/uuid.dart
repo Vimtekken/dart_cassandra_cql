@@ -4,7 +4,7 @@ part of dart_cassandra_cql.types;
 _uuidImpl.Uuid _uuidFactory = _uuidImpl.Uuid();
 
 class Uuid {
-  String value;
+  String? value;
 
   Uuid([this.value]);
 
@@ -28,17 +28,17 @@ class Uuid {
   }
 
   String toString() {
-    return value;
+    return value!;
   }
 
   bool operator ==(other) {
     if (other is! Uuid) return false;
-    return value == (other as Uuid).value;
+    return value == other.value;
   }
 
   /**
    * Convert uuid to a [Uint8List] byte list
    */
 
-  get bytes => Uint8List.fromList(_uuidImpl.Uuid.parse(value));
+  get bytes => Uint8List.fromList(_uuidImpl.Uuid.parse(value!));
 }

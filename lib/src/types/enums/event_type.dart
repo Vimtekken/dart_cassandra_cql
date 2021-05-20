@@ -13,8 +13,8 @@ class EventType extends Enum<String> {
 
   String toString() => value;
 
-  static EventType valueOf(String value) {
-    EventType fromValue = value == NODE_ADDED.value
+  static EventType valueOf(String? value) {
+    EventType? fromValue = value == NODE_ADDED.value
         ? NODE_ADDED
         : value == NODE_REMOVED.value
             ? NODE_REMOVED
@@ -36,8 +36,8 @@ class EventType extends Enum<String> {
     return fromValue;
   }
 
-  static String nameOf(EventType value) {
-    String nameValue = value == NODE_ADDED
+  static String? nameOf(EventType? value) {
+    String? nameValue = value == NODE_ADDED
         ? "NODE_ADDED"
         : value == NODE_REMOVED
             ? "NODE_REMOVED"
@@ -49,7 +49,9 @@ class EventType extends Enum<String> {
                         ? "SCHEMA_CREATED"
                         : value == SCHEMA_UPDATED
                             ? "SCHEMA_UPDATED"
-                            : value == SCHEMA_DROPPED ? "SCHEMA_DROPPED" : null;
+                            : value == SCHEMA_DROPPED
+                                ? "SCHEMA_DROPPED"
+                                : null;
 
     return nameValue;
   }

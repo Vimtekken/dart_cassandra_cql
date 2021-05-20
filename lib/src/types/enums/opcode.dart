@@ -23,7 +23,7 @@ class Opcode extends Enum<int> {
   String toString() => "0x${value.toRadixString(16)}";
 
   static Opcode valueOf(int value) {
-    Opcode fromValue = value == ERROR._value
+    Opcode? fromValue = value == ERROR._value
         ? ERROR
         : value == STARTUP._value
             ? STARTUP
@@ -64,14 +64,13 @@ class Opcode extends Enum<int> {
                                                                     : null;
 
     if (fromValue == null) {
-      throw ArgumentError(
-          "Invalid opcode value 0x${value.toRadixString(16)}");
+      throw ArgumentError("Invalid opcode value 0x${value.toRadixString(16)}");
     }
     return fromValue;
   }
 
-  static String nameOf(Opcode value) {
-    String nameValue = value == ERROR
+  static String? nameOf(Opcode? value) {
+    String? nameValue = value == ERROR
         ? "ERROR"
         : value == STARTUP
             ? "STARTUP"
