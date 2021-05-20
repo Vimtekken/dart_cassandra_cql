@@ -1,3 +1,14 @@
+## 1.0.0-rc1 (May 20, 2021)
+First candidate supporting dart 2.12 and null safety. This is a large refactor affecting
+the entire library and must undergo extensive testing.
+Once stabilty is confirmed 1.0.0 will be released.
+
+## 0.3.1 (May 17, 2021)
+Fixing pubspec package name changed in 0.3.0. 0.3.0 is broken, use 0.3.1 instead.
+
+## 0.3.0 (May 17, 2021)
+Upgrading to use uuid version ^3.0.0
+
 ## 0.1.5 (Feb 18, 2016)
 
 Fixed another socket flush race condition ([#2](https://github.com/achilleasa/dart_cassandra_cql/pull/2))
