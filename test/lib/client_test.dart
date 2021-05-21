@@ -419,28 +419,26 @@ main({bool enableLogger: true}) {
       });
 
       group("INSERT:", () {
-        test("batch insert", () {
+        test("batch insert", () async {
           server.setReplayList(["void_result_v2.dump"]);
           client = new cql.Client.fromHostList(
               ["${SERVER_HOST}:${SERVER_PORT}"],
               poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
-
-          void handleResult(cql.ResultMessage message) {
-            expect(message, new isInstanceOf<cql.VoidResultMessage>());
+          void handleResult(cql.ResultMessage? message) {
+            expect(message, isA<cql.VoidResultMessage>());
           }
 
           String query =
               "INSERT INTO page_view_counts (url_name, page_name, counter_value) VALUES (?, ?, ?)";
-          client!
-              .execute(new cql.BatchQuery()
-                ..add(new cql.Query(query,
-                    bindings: ["http://www.test.com", "front_page", 1]))
-                ..add(new cql.Query(query,
-                    bindings: ["http://www.test.com", "login_page", 2]))
-                ..add(new cql.Query(query,
-                    bindings: ["http://www.test.com", "main_page", 3])))
-              .then(expectAsync(handleResult) as FutureOr<void> Function(
-                  ResultMessage?));
+          var result = await client!.execute(new cql.BatchQuery()
+            ..add(new cql.Query(query,
+                bindings: ["http://www.test.com", "front_page", 1]))
+            ..add(new cql.Query(query,
+                bindings: ["http://www.test.com", "login_page", 2]))
+            ..add(new cql.Query(query,
+                bindings: ["http://www.test.com", "main_page", 3])));
+          print(result);
+          handleResult(result);
         });
 
         test("batch insert with serial consistency (V3)", () {
@@ -662,7 +660,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -726,7 +724,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -799,7 +797,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -878,7 +876,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -943,7 +941,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,

@@ -26,4 +26,4 @@ void unregisterCodec(String typeClassName) {
  * of custom cassandra data type with class [typeClassName]
  */
 Codec<Object, Uint8List?>? getCodec(String? typeClassName) =>
-    _customTypeCodecs[typeClassName!];
+    _customTypeCodecs[typeClassName];

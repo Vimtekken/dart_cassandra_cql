@@ -3,7 +3,7 @@ part of dart_cassandra_cql.client;
 class Client {
   final ConnectionPool connectionPool;
   final Map<String, Future<PreparedResultMessage?>> preparedQueries =
-      Map<String, Future<PreparedResultMessage>>();
+      Map<String, Future<PreparedResultMessage?>>();
 
   /**
    * Create a new client and a [SimpleConnectionPool] to the supplied [hosts] optionally using

@@ -289,7 +289,8 @@ class Connection {
 
     switch (message.opcode) {
       case Opcode.READY:
-        responseCompleter!.complete(null);
+        print('OPCODE READY');
+        responseCompleter!.complete(VoidResultMessage());
         break;
       case Opcode.AUTHENTICATE:
       case Opcode.AUTH_CHALLENGE:
@@ -413,7 +414,7 @@ class Connection {
           ? query.positionalQuery
           : query.query;
 
-    return _cast<PreparedResultMessage>(await _writeMessage(message));
+    return _cast<PreparedResultMessage?>(await _writeMessage(message));
   }
 
   /**
@@ -464,7 +465,7 @@ class Connection {
    * Execute the supplied batch [query]
    */
 
-  Future<RowsResultMessage?> executeBatch(BatchQuery query) async {
+  Future<VoidResultMessage?> executeBatch(BatchQuery query) async {
     await open();
 
     BatchMessage message = BatchMessage()
@@ -473,7 +474,7 @@ class Connection {
       ..serialConsistency = query.serialConsistency
       ..queryList = query.queryList;
 
-    return _cast<RowsResultMessage?>(await _writeMessage(message));
+    return _cast<VoidResultMessage?>(await _writeMessage(message));
   }
 
   /**
