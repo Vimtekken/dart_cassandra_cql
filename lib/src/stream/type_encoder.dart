@@ -177,12 +177,12 @@ class TypeEncoder {
     writeBytes(uuid.bytes, size);
   }
 
-  void _writeVarInt(int value, SizeType size) {
+  void _writeVarInt(BigInt value, SizeType size) {
     List<int> bytes = [];
     for (int bits = value.bitLength; bits > 0; bits -= 8, value >>= 8) {
-      bytes.add(value & 0xFF);
+      bytes.add((value & BigInt.from(0xFF)).toInt());
     }
-    if (value < 0) {
+    if (value < BigInt.zero) {
       bytes.add(0xFF);
     }
     writeBytes(Uint8List.fromList(bytes.reversed.toList()), size);
@@ -351,7 +351,7 @@ class TypeEncoder {
         _writeDecimal(value as num, size);
         break;
       case DataType.VARINT:
-        _writeVarInt(value as int, size);
+        _writeVarInt(value as BigInt, size);
         break;
       case DataType.UDT:
         if (value is! Map) {

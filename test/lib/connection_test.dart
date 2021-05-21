@@ -151,14 +151,15 @@ main({bool enableLogger: true}) {
           .catchError(expectAsync(handleError));
     });
 
-    test("default keyspace (V2)", () {
+    test("default keyspace (V2)", () async {
       server.setReplayList(["set_keyspace_v2.dump"]);
       cql.PoolConfiguration config =
           new cql.PoolConfiguration(protocolVersion: cql.ProtocolVersion.V3);
       conn = new cql.Connection("conn-0", SERVER_HOST, SERVER_PORT,
           config: config, defaultKeyspace: "test");
 
-      expect(conn!.open(), completes);
+      await expectLater(conn!.open(), completes);
+      await expectLater(conn!.close(), completes);
     });
 
     test("query (V2)", () {
@@ -345,7 +346,6 @@ main({bool enableLogger: true}) {
           cql.PoolConfiguration config = new cql.PoolConfiguration(
               protocolVersion: cql.ProtocolVersion.V2,
               compression: cql.Compression.LZ4);
-
           conn = new cql.Connection("conn-0", SERVER_HOST, SERVER_PORT,
               config: config);
 

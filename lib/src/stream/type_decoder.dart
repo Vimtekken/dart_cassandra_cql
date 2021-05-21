@@ -126,11 +126,11 @@ class TypeDecoder {
 
   Map<String?, String?> readStringMap(SizeType size) {
     int len = readLength(size);
-    Map map = {};
+    Map<String?, String?> map = <String?, String?>{};
     while (len-- > 0) {
       map[readString(size)] = readString(size);
     }
-    return map as Map<String?, String?>;
+    return map;
   }
 
   Map<String?, List<String?>> readStringMultiMap(SizeType size) {

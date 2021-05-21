@@ -14,7 +14,7 @@ Type _getGenericType(ClassMirror classMirror) {
 }
 
 main({bool enableLogger: true}) {
-  List enumClasses = [
+  List<Type> enumClasses = [
     BatchType,
     Consistency,
     DataType,
@@ -31,7 +31,7 @@ main({bool enableLogger: true}) {
     Compression
   ];
 
-  for (Type enumClass in enumClasses as Iterable<Type>) {
+  for (Type enumClass in enumClasses) {
     ClassMirror cm = reflectClass(enumClass);
 
     MethodMirror? valueOfMirror = null;

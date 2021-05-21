@@ -441,7 +441,7 @@ class Connection {
         ..resultPageSize = pageSize
         ..pagingState = pagingState;
 
-      return _cast<ResultMessage>(await _writeMessage(message));
+      return _cast<ResultMessage?>(await _writeMessage(message));
     } else {
       // Prepared query. V3 of the protocol does not support named bindings so we need to
       // map them to positional ones
@@ -456,7 +456,7 @@ class Connection {
         ..resultPageSize = pageSize
         ..pagingState = pagingState;
 
-      return _cast<ResultMessage>(await _writeMessage(message));
+      return _cast<ResultMessage?>(await _writeMessage(message));
     }
   }
 
@@ -473,7 +473,7 @@ class Connection {
       ..serialConsistency = query.serialConsistency
       ..queryList = query.queryList;
 
-    return _cast<RowsResultMessage>(await _writeMessage(message));
+    return _cast<RowsResultMessage?>(await _writeMessage(message));
   }
 
   /**
