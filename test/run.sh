@@ -1,3 +1,3 @@
 #!/bin/bash
 
-dart --checked --package-root=../packages run_all.dart
+pub run test test/run_all.dart --chain-stack-traces
