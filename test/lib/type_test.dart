@@ -4,9 +4,9 @@ import "dart:typed_data";
 import "dart:io";
 import "package:test/test.dart";
 
-import '../../lib/src/types.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
 import 'mocks/mocks.dart' as mock;
-import "mocks/custom.dart" as custom;
+import 'mocks/custom.dart' as custom;
 
 main({bool enableLogger: true}) {
   if (enableLogger) {

@@ -23,7 +23,7 @@ class Connection {
   Map<int, FrameWriter?> _reservedFrameWriters = Map<int, FrameWriter?>();
 
   // Tracked futures/streams
-  late Map<int, Completer<Message>> _pendingResponses;
+  late Map<int, Completer<Message?>> _pendingResponses;
   Completer? _connected;
   Completer? _drained;
   late Future _socketFlushed;
@@ -34,7 +34,7 @@ class Connection {
     _poolConfig = config == null ? PoolConfiguration() : config;
 
     // Initialize pending futures list
-    _pendingResponses = Map<int, Completer<Message>>();
+    _pendingResponses = Map<int, Completer<Message?>>();
   }
 
   StreamController? _eventController;
@@ -134,7 +134,7 @@ class Connection {
     return _connected!.future;
   }
 
-  Future<ResultMessage> _authenticate(AuthenticateMessage authMessage) {
+  Future<Message> _authenticate(AuthenticateMessage authMessage) {
     // Check if an authenticator is specified
     if (_poolConfig.authenticator == null) {
       throw AuthenticationException(
@@ -146,9 +146,9 @@ class Connection {
     }
 
     // Run through challenge response till we get back a ready message from the server
-    Completer completer = Completer();
+    final completer = Completer<Message>();
 
-    void answerChallenge(Message result) {
+    void answerChallenge(Message? result) {
       if (result is AuthenticateMessage || result is AuthChallengeMessage) {
         AuthResponseMessage response = AuthResponseMessage()
           ..responsePayload = _poolConfig.authenticator!.answerChallenge(
@@ -170,7 +170,7 @@ class Connection {
 
     // Begin challenge-response round
     answerChallenge(authMessage);
-    return completer.future as Future<ResultMessage>;
+    return completer.future;
   }
 
   /**
@@ -182,7 +182,7 @@ class Connection {
       ..cqlVersion = _poolConfig.cqlVersion
       ..compression = _poolConfig.compression;
 
-    _writeMessage(message).then((Message response) {
+    _writeMessage(message).then((Message? response) {
       // Authentication Required
       if (response is AuthenticateMessage) {
         return _authenticate(response);
@@ -215,7 +215,7 @@ class Connection {
       healthy = false;
       inService = false;
       _drained = null;
-      _connected!.completeError(e, trace);
+      _connected?.completeError(e, trace);
     });
   }
 
@@ -224,8 +224,8 @@ class Connection {
    * completed with the query results or with an error if one occurs
    */
 
-  Future<Message> _writeMessage(RequestMessage message) {
-    final reply = Completer<Message>();
+  Future<Message?> _writeMessage(RequestMessage message) {
+    final reply = Completer<Message?>();
     // Make sure we have flushed our socket data and then
     // block till we get back a frame writer
     // We also assign returned future to _socketFlushed to avoid
@@ -289,7 +289,7 @@ class Connection {
 
     switch (message.opcode) {
       case Opcode.READY:
-        responseCompleter!.complete();
+        responseCompleter!.complete(null);
         break;
       case Opcode.AUTHENTICATE:
       case Opcode.AUTH_CHALLENGE:

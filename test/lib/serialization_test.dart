@@ -5,9 +5,9 @@ import "dart:io";
 import "dart:math";
 import "package:test/test.dart";
 
-import '../../lib/src/stream.dart';
-import '../../lib/src/types.dart';
-import "mocks/mocks.dart" as mock;
+import 'package:dart_cassandra_cql/src/stream.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
+import 'mocks/mocks.dart' as mock;
 import 'mocks/custom.dart' as custom;
 
 main({bool enableLogger: true}) {

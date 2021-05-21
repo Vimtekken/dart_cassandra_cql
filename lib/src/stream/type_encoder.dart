@@ -313,9 +313,9 @@ class TypeEncoder {
             : SizeType.LONG;
         TypeEncoder scopedEncoder = TypeEncoder(protocolVersion);
         scopedEncoder.writeLength(v.length, itemSize);
-        v.forEach(((Object elem) => scopedEncoder.writeTypedValue(name, elem,
+        v.forEach(((dynamic elem) => scopedEncoder.writeTypedValue(name, elem,
             typeSpec: typeSpec!.valueSubType,
-            size: itemSize)) as void Function(dynamic));
+            size: itemSize)));
 
         // Write buffer size in bytes and the actual buffer data
         writeLength(scopedEncoder.writer!.lengthInBytes, size);
@@ -334,13 +334,13 @@ class TypeEncoder {
             : SizeType.LONG;
         TypeEncoder scopedEncoder = TypeEncoder(protocolVersion);
         scopedEncoder.writeLength(v.length, itemSize);
-        v.forEach((Object key, Object val) {
+        v.forEach((dynamic key, dynamic val) {
           scopedEncoder
             ..writeTypedValue(name, key,
                 typeSpec: typeSpec!.keySubType, size: itemSize)
             ..writeTypedValue(name, val,
                 typeSpec: typeSpec.valueSubType, size: itemSize);
-        } as void Function(dynamic, dynamic));
+        });
 
         // Write buffer size in bytes and the actual buffer data
         writeLength(scopedEncoder.writer!.lengthInBytes, size);

@@ -2,7 +2,7 @@ library dart_cassandra_cql.tests.enums;
 
 import "dart:mirrors";
 import "package:test/test.dart";
-import '../../lib/src/types.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
 
 Type _getMethodArgType(MethodMirror methodMirror) {
   ParameterMirror paramMirror = methodMirror.parameters.first;

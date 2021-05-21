@@ -44,7 +44,7 @@ void main() {
   // Perform a select with positional bindings
   client.query(
       cql.Query("SELECT * from test.type_test WHERE id=?", bindings : [123])
-  ).then((Iterable<Map<String, Object>> rows) {
+  ).then((Iterable<Map<String?, Object?>> rows) {
     // ...
   });
 
@@ -86,7 +86,7 @@ void main() {
   sub = client.stream(
       cql.Query("SELECT * from test.type_test")
       , pageSize : 200
-  ).listen((Map<String, Object> row) {
+  ).listen((Map<String?, Object?> row) {
     // Handle incoming row
     print("Next row: ${row}");
     // ... or manipulate stream

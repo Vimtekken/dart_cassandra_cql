@@ -4,9 +4,9 @@ import "dart:typed_data";
 import "dart:io";
 import "dart:async";
 import "package:logging/logging.dart";
-import '../../../lib/src/stream.dart';
-import '../../../lib/src/protocol.dart';
-import '../../../lib/src/types.dart';
+import 'package:dart_cassandra_cql/src/stream.dart';
+import 'package:dart_cassandra_cql/src/protocol.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
 
 final Logger mockLogger = new Logger("MockLogger");
 bool initializedLogger = false;
@@ -299,7 +299,7 @@ class MockServer {
 
     client
         .transform(new FrameParser().transformer)
-        .transform(new FrameDecompressor(_compression!).transformer)
+        .transform(new FrameDecompressor(_compression).transformer)
         .listen((frame) => _handleClientFrame(client, frame),
             onError: (err, trace) => _handleClientError(client, err, trace));
   }
@@ -314,6 +314,7 @@ class MockChunkedOutputWriter extends ChunkedOutputWriter {
 }
 
 class MockAuthenticator extends Authenticator {
+  @override
   String get authenticatorClass {
     return "com.achilleasa.FooAuthenticator";
   }

@@ -6,11 +6,11 @@ import "dart:io";
 import "dart:typed_data";
 
 // Internal lib dependencies
-import 'logging.dart';
-import 'types.dart';
-import 'protocol.dart';
-import 'query.dart';
-import 'exceptions.dart';
+import 'package:dart_cassandra_cql/src/logging.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
+import 'package:dart_cassandra_cql/src/protocol.dart';
+import 'package:dart_cassandra_cql/src/query.dart';
+import 'package:dart_cassandra_cql/src/exceptions.dart';
 
 // External packages
 import 'package:collection/collection.dart' show IterableExtension;

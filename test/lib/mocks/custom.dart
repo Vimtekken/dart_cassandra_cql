@@ -2,7 +2,7 @@ library dart_cassandra_cql.tests.custom;
 
 import "dart:typed_data";
 import "dart:convert";
-import '../../../lib/src/types.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
 
 class CustomJson implements CustomType {
   Map? payload;

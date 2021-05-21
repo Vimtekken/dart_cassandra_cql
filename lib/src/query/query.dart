@@ -176,8 +176,8 @@ class Query extends QueryInterface {
   }
 
   void _expandNamedPlaceholders(StringBuffer buffer) {
-    Map<String, Object>? bindingMap =
-        (_bindings as Map?) as Map<String, Object>?;
+    Map<String?, Object?>? bindingMap =
+        (_bindings as Map?) as Map<String?, Object?>?;
     int blockStart = 0;
     int offset = 0;
     bool insideLiteral = false;

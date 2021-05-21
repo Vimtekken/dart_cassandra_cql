@@ -3,10 +3,10 @@ library dart_cassandra_cql.tests.frame_writer;
 import "package:test/test.dart";
 import "mocks/mocks.dart" as mock;
 
-import '../../lib/src/types.dart';
-import '../../lib/src/protocol.dart';
-import '../../lib/src/stream.dart';
-import '../../lib/src/exceptions.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
+import 'package:dart_cassandra_cql/src/protocol.dart';
+import 'package:dart_cassandra_cql/src/stream.dart';
+import 'package:dart_cassandra_cql/src/exceptions.dart';
 
 main({bool enableLogger: true}) {
   if (enableLogger) {

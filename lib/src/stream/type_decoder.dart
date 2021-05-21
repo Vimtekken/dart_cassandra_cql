@@ -135,7 +135,7 @@ class TypeDecoder {
 
   Map<String?, List<String?>> readStringMultiMap(SizeType size) {
     int len = readLength(size);
-    final Map<String?, List<String?>> map = <String?, List<String>>{};
+    final Map<String?, List<String?>> map = <String?, List<String?>>{};
     while (len-- > 0) {
       map[readString(size)] = readStringList(size);
     }

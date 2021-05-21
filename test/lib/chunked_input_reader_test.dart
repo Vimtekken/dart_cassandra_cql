@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import "package:test/test.dart";
 
-import '../../lib/src/stream.dart';
+import 'package:dart_cassandra_cql/src/stream.dart';
 
 main({bool enableLogger: true}) {
   group("Chunked input reader:", () {

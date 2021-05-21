@@ -1,13 +1,13 @@
 part of dart_cassandra_cql.client;
 
-typedef Future<ResultMessage> PagedQueryExecutor(Query query,
+typedef Future<ResultMessage?> PagedQueryExecutor(Query query,
     {int? pageSize, Uint8List? pagingState});
 
 class ResultStream {
   PagedQueryExecutor _queryExecutor;
-  late StreamController<Map<String, Object>> _streamController;
+  late StreamController<Map<String?, Object?>> _streamController;
   Uint8List? _pagingState;
-  Queue<Map<String, Object>>? _bufferedData;
+  Queue<Map<String?, Object?>>? _bufferedData;
   Query _query;
   int _pageSize;
   bool _buffering = false;
@@ -19,7 +19,7 @@ class ResultStream {
     _buffering = true;
 
     _queryExecutor(_query, pageSize: _pageSize, pagingState: _pagingState)
-        .then((ResultMessage odata) {
+        .then((ResultMessage? odata) {
           RowsResultMessage data = odata as RowsResultMessage;
           // If the stream has been closed, clean up
           if (_streamController.isClosed) {
@@ -52,7 +52,7 @@ class ResultStream {
 
     // Emit each available row
     while (_bufferedData != null && _bufferedData!.isNotEmpty) {
-      Map<String, Object> row = _bufferedData!.removeFirst();
+      Map<String?, Object?> row = _bufferedData!.removeFirst();
       _streamController.add(row);
 
       // if after adding the row, we detect that the stream is paused or closed, stop streaming
@@ -79,14 +79,14 @@ class ResultStream {
     _pagingState = null;
   }
 
-  Stream<Map<String, Object>> get stream => _streamController.stream;
+  Stream<Map<String?, Object?>> get stream => _streamController.stream;
 
   /**
    * Create a new [ResultStream] by paging through [this._query] object with a page size of [this._pageSize].
    */
   ResultStream(PagedQueryExecutor this._queryExecutor, Query this._query,
       int this._pageSize) {
-    _streamController = StreamController<Map<String, Object>>(
+    _streamController = StreamController<Map<String?, Object?>>(
         onListen: _bufferNextPage,
         onResume: _emitRows,
         onCancel: _cleanup,

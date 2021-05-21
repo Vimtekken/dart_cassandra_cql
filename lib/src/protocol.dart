@@ -7,10 +7,10 @@ import "dart:collection";
 import "dart:convert";
 
 // Internal lib dependencies
-import 'types.dart';
-import 'stream.dart';
-import 'query.dart';
-import 'exceptions.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
+import 'package:dart_cassandra_cql/src/stream.dart';
+import 'package:dart_cassandra_cql/src/query.dart';
+import 'package:dart_cassandra_cql/src/exceptions.dart';
 
 // Protocol frame readers
 part 'protocol/frame/frame_parser.dart';

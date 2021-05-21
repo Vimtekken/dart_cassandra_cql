@@ -5,8 +5,8 @@ import "dart:async";
 import "package:test/test.dart";
 import "mocks/mocks.dart" as mock;
 import "mocks/compression.dart" as compress;
-import '../../lib/dart_cassandra_cql.dart' as cql;
-import '../../lib/src/exceptions.dart' as cqlEx;
+import 'package:dart_cassandra_cql/dart_cassandra_cql.dart' as cql;
+import 'package:dart_cassandra_cql/src/exceptions.dart' as cqlEx;
 
 main({bool enableLogger: true}) {
   if (enableLogger) {
@@ -173,7 +173,7 @@ main({bool enableLogger: true}) {
           }), completion((cql.RowsResultMessage res) {
         expect(res.rows!.length, equals(1));
         Map<String?, Object?> row = res.rows!.first;
-        Map<String, Object> expectedValues = {
+        Map<String?, Object?> expectedValues = {
           "ascii_type": "text4",
           "bigint_type": 9223372036854775807,
           "bool_type": true,
@@ -188,7 +188,7 @@ main({bool enableLogger: true}) {
           "varint_type":
               BigInt.parse('-3123091212904812093120938120938120312890'),
         };
-        expectedValues.forEach((String fieldName, Object fieldValue) {
+        expectedValues.forEach((String? fieldName, Object? fieldValue) {
           expect(row[fieldName], equals(fieldValue));
         });
         return true;
@@ -208,7 +208,7 @@ main({bool enableLogger: true}) {
           }), completion((cql.RowsResultMessage res) {
         expect(res.rows!.length, equals(1));
         Map<String?, Object?> row = res.rows!.first;
-        Map<String, Object> expectedValues = {
+        Map<String?, Object?> expectedValues = {
           "login": "test_user",
           "addresses": {
             "home": {
@@ -231,7 +231,7 @@ main({bool enableLogger: true}) {
           "first_name": "Test",
           "last_name": "User"
         };
-        expectedValues.forEach((String fieldName, Object fieldValue) {
+        expectedValues.forEach((String? fieldName, Object? fieldValue) {
           expect(row[fieldName], equals(fieldValue));
         });
         return true;
