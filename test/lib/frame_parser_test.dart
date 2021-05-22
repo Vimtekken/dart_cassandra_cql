@@ -9,7 +9,7 @@ import 'package:dart_cassandra_cql/src/types.dart';
 import 'package:dart_cassandra_cql/src/protocol.dart';
 import 'package:dart_cassandra_cql/src/exceptions.dart';
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   if (enableLogger) {
     mock.initLogger();
   }

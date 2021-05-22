@@ -13,7 +13,7 @@ Type _getGenericType(ClassMirror classMirror) {
   return classMirror.superclass!.typeArguments.first.reflectedType;
 }
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   List<Type> enumClasses = [
     BatchType,
     Consistency,

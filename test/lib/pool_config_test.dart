@@ -4,7 +4,7 @@ import "package:test/test.dart";
 
 import 'package:dart_cassandra_cql/dart_cassandra_cql.dart' as cql;
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   group("Pool config:", () {
     test("invalid streams per connection (V2 protocol)", () {
       expect(

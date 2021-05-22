@@ -8,7 +8,7 @@ import 'package:dart_cassandra_cql/src/types.dart';
 import 'mocks/mocks.dart' as mock;
 import 'mocks/custom.dart' as custom;
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   if (enableLogger) {
     mock.initLogger();
   }

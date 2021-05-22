@@ -6,7 +6,7 @@ import "package:test/test.dart";
 
 import 'package:dart_cassandra_cql/src/stream.dart';
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   group("Chunked input reader:", () {
     test("add chunks", () {
       ChunkedInputReader reader = new ChunkedInputReader();

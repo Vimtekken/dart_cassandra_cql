@@ -8,7 +8,7 @@ import "mocks/compression.dart" as compress;
 import 'package:dart_cassandra_cql/dart_cassandra_cql.dart' as cql;
 import 'package:dart_cassandra_cql/src/exceptions.dart' as cqlEx;
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   if (enableLogger) {
     mock.initLogger();
   }
