@@ -25,3 +25,6 @@ pubspec.lock
 ._*
 .Spotlight-V100
 .Trashes
+
+# Ignore built directories
+doc/

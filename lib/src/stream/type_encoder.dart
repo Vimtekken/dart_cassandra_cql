@@ -314,8 +314,7 @@ class TypeEncoder {
         TypeEncoder scopedEncoder = TypeEncoder(protocolVersion);
         scopedEncoder.writeLength(v.length, itemSize);
         v.forEach(((dynamic elem) => scopedEncoder.writeTypedValue(name, elem,
-            typeSpec: typeSpec!.valueSubType,
-            size: itemSize)));
+            typeSpec: typeSpec!.valueSubType, size: itemSize)));
 
         // Write buffer size in bytes and the actual buffer data
         writeLength(scopedEncoder.writer!.lengthInBytes, size);
