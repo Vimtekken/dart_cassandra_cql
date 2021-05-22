@@ -8,6 +8,6 @@ environment:
 dependencies:
   uuid: ^3.0.0
   collection: ^1.15.0
-  logging: any
+  logging: ^1.0.0
 dev_dependencies:
   test: ^1.16.6
