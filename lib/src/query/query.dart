@@ -35,11 +35,8 @@ class Query extends QueryInterface {
     this.bindings = bindings;
   }
 
-  /**
-   * Returns a [String] with the original query where all positional or named placeholders
-   * are expanded to the values of supplied bindings
-   */
-
+  /// Returns a [String] with the original query where all positional or named placeholders
+  /// are expanded to the values of supplied bindings
   String get expandedQuery {
     StringBuffer buffer = StringBuffer();
     // If no bindings are specified return the original query string

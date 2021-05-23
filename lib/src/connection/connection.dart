@@ -39,11 +39,8 @@ class Connection {
 
   StreamController? _eventController;
 
-  /**
-   * Abort any pending requests with [reason] as the error and clean up.
-   * Returns a [Future] to be completed when the client socket has been successfully closed
-   */
-
+  /// Abort any pending requests with [reason] as the error and clean up.
+  /// Returns a [Future] to be completed when the client socket has been successfully closed
   Future _abortRequestsAndCleanup(reason) {
     // Clear healthy flag
     healthy = false;
@@ -66,12 +63,9 @@ class Connection {
     return socketClosed;
   }
 
-  /**
-   * Attempt to reconnect to the server. If the attempt fails, it will be retried after
-   * [reconnectWaitTime] ms up to [maxConnectionAttempts] times. If all connection attempts
-   * fail, then the [_connected] [Future] returned by a call to [open[ will also fail
-   */
-
+  /// Attempt to reconnect to the server. If the attempt fails, it will be retried after
+  /// [reconnectWaitTime] ms up to [maxConnectionAttempts] times. If all connection attempts
+  /// fail, then the [_connected] [Future] returned by a call to [open[ will also fail
   Future _reconnect() {
     if (_connected == null) {
       _connected = Completer();
@@ -173,10 +167,7 @@ class Connection {
     return completer.future;
   }
 
-  /**
-   * Perform handshake, authenticate with the server and optionally select [defaultKeyspace]
-   */
-
+  /// Perform handshake, authenticate with the server and optionally select [defaultKeyspace]
   void _handshake() {
     StartupMessage message = StartupMessage()
       ..cqlVersion = _poolConfig.cqlVersion
@@ -219,11 +210,8 @@ class Connection {
     });
   }
 
-  /**
-   * Encode and send a [message] to the server. Returns a [Future] to be
-   * completed with the query results or with an error if one occurs
-   */
-
+  /// Encode and send a [message] to the server. Returns a [Future] to be
+  /// completed with the query results or with an error if one occurs
   Future<Message?> _writeMessage(RequestMessage message) {
     final reply = Completer<Message?>();
     // Make sure we have flushed our socket data and then
@@ -252,10 +240,7 @@ class Connection {
     return reply.future;
   }
 
-  /**
-   * Handle an incoming server [message]
-   */
-
+  /// Handle an incoming server [message]
   void _onMessage(Message message) {
     connectionLogger.fine(
         "[${connId}] [stream #${message.streamId}] Received message of type ${Opcode.nameOf(message.opcode)} (${message.opcode}) ${message}");
@@ -324,11 +309,8 @@ class Connection {
     }
   }
 
-  /**
-   * Check if we are draining active requests and no more
-   * pending requests are available
-   */
-
+  /// Check if we are draining active requests and no more
+  /// pending requests are available
   void _checkForDrainedRequests() {
     if (_drained != null && _pendingResponses.length == 0) {
       _drained!.complete(true);
@@ -338,11 +320,8 @@ class Connection {
     }
   }
 
-  /**
-   * Open a working connection to the server using [config.cqlVersion] and optionally select
-   * keyspace [defaultKeyspace]. Returns a [Future] to be completed on a successful protocol handshake
-   */
-
+  /// Open a working connection to the server using [config.cqlVersion] and optionally select
+  /// keyspace [defaultKeyspace]. Returns a [Future] to be completed on a successful protocol handshake
   Future open() {
     // Prevent multiple connection attempts
     if (_connected != null) {
@@ -353,19 +332,16 @@ class Connection {
     return _reconnect();
   }
 
-  /**
-   * Close the connection and set the [inService] flag to false so no new
-   * requests are sent to this connection. If the [drain] flag is set then the socket
-   * will be disconnected when all pending requests finish or when [drainTimeout] expires.
-   * Otherwise, the socket will be immediately disconnected and any pending requests will
-   * automatically fail.
-   *
-   * Once the connection is closed, any further invocations of close() will immediately
-   * succeed.
-   *
-   * This method returns a [Future] to be completed when the connection is shut down
-   */
-
+  /// Close the connection and set the [inService] flag to false so no new
+  /// requests are sent to this connection. If the [drain] flag is set then the socket
+  /// will be disconnected when all pending requests finish or when [drainTimeout] expires.
+  /// Otherwise, the socket will be immediately disconnected and any pending requests will
+  /// automatically fail.
+  ///
+  /// Once the connection is closed, any further invocations of close() will immediately
+  /// succeed.
+  ///
+  /// This method returns a [Future] to be completed when the connection is shut down
   Future close(
       {bool drain: true, Duration drainTimeout: const Duration(seconds: 5)}) {
     // Already closed
@@ -417,15 +393,12 @@ class Connection {
     return _cast<PreparedResultMessage?>(await _writeMessage(message));
   }
 
-  /**
-   * Execute a single prepared or unprepared [query]. In the case of a prepared query,
-   * the optional [preparedResult] argument needs to be specified. To page through
-   * queries, the [pageSize] and [pagingState] fields should be supplied for the initial and
-   * each consecutive invocation.
-   *
-   * This method will returns [ResultMessage] with the query result
-   */
-
+  /// Execute a single prepared or unprepared [query]. In the case of a prepared query,
+  /// the optional [preparedResult] argument needs to be specified. To page through
+  /// queries, the [pageSize] and [pagingState] fields should be supplied for the initial and
+  /// each consecutive invocation.
+  ///
+  /// This method will returns [ResultMessage] with the query result
   Future<ResultMessage?> execute(Query query,
       {PreparedResultMessage? preparedResult: null,
       int? pageSize: null,
@@ -461,10 +434,7 @@ class Connection {
     }
   }
 
-  /**
-   * Execute the supplied batch [query]
-   */
-
+  /// Execute the supplied batch [query]
   Future<VoidResultMessage?> executeBatch(BatchQuery query) async {
     await open();
 
@@ -477,11 +447,8 @@ class Connection {
     return _cast<VoidResultMessage?>(await _writeMessage(message));
   }
 
-  /**
-   * Request server notifications for each [EventRegistrationType] in [eventTypes]
-   * and return a [Stream<EventMessage>] for handling incoming events
-   */
-
+  /// Request server notifications for each [EventRegistrationType] in [eventTypes]
+  /// and return a [Stream<EventMessage>] for handling incoming events
   Stream<EventMessage> listenForEvents(
       Iterable<EventRegistrationType> eventTypes) {
     RegisterMessage message = RegisterMessage()
@@ -498,9 +465,7 @@ class Connection {
     return _eventController!.stream as Stream<EventMessage>;
   }
 
-  /**
-   * Check if the connection has available stream slots for multiplexing additional queries
-   */
+  /// Check if the connection has available stream slots for multiplexing additional queries
   bool get hasAvailableStreams =>
       _frameWriterPool != null && _frameWriterPool!.hasAvailableSlots;
 

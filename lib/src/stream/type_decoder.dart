@@ -142,12 +142,9 @@ class TypeDecoder {
     return map;
   }
 
-  /**
-   * Create a new [Header] object by parsing & verifying the protocol
-   * contained in the supplied [buffer]. This method will throw a
-   * [ParseException] if an error occurs while parsing header fields
-   */
-
+  /// Create a new [Header] object by parsing & verifying the protocol
+  /// contained in the supplied [buffer]. This method will throw a
+  /// [ParseException] if an error occurs while parsing header fields
   FrameHeader readHeader() {
     FrameHeader header = FrameHeader();
 
@@ -190,12 +187,9 @@ class TypeDecoder {
     return header;
   }
 
-  /**
-   * Read and decode VarInt. Returns the parsed [int] value
-   * Based on: https://github.com/datastax/cpp-driver/blob/deprecated/src/cql/cql_varint.cpp
-   * but exploits dart vm support for arbitary long ints to parse varInts of any size
-   */
-
+  /// Read and decode VarInt. Returns the parsed [int] value
+  /// Based on: https://github.com/datastax/cpp-driver/blob/deprecated/src/cql/cql_varint.cpp
+  /// but exploits dart vm support for arbitary long ints to parse varInts of any size
   BigInt? readVarInt(SizeType? size, [int? len = null]) {
     if (len == null) {
       len = readLength(size);
@@ -232,14 +226,11 @@ class TypeDecoder {
     return value.toSigned(8 * bytesToCopy);
   }
 
-  /**
-   * Read and decode variable precision decimal int/double. Returns either an [int] or a [double]
-   * depending on the number of decimal points that the packed type contains.
-   *
-   * Based on: https://github.com/datastax/cpp-driver/blob/deprecated/src/cql/cql_decimal.cpp
-   * but exploits dart vm support for arbitary long ints/doubles to parse decimals of any size
-   */
-
+  /// Read and decode variable precision decimal int/double. Returns either an [int] or a [double]
+  /// depending on the number of decimal points that the packed type contains.
+  ///
+  /// Based on: https://github.com/datastax/cpp-driver/blob/deprecated/src/cql/cql_decimal.cpp
+  /// but exploits dart vm support for arbitary long ints/doubles to parse decimals of any size
   Object? readDecimal(SizeType? size, [int? len = null]) {
     if (len == null) {
       len = readLength(size);

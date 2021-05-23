@@ -9,11 +9,8 @@ class AsyncQueue<T> {
     _resources = Queue<T>.from(resources);
   }
 
-  /**
-   * Reserve an item of type [T] from the [AsyncQueue]. Returns a [Future<T>]
-   * to be completed when an item becomes available
-   */
-
+  /// Reserve an item of type [T] from the [AsyncQueue]. Returns a [Future<T>]
+  /// to be completed when an item becomes available
   Future<T> reserve() {
     final reservation = Completer<T>();
     _reservations.add(reservation);
@@ -32,19 +29,13 @@ class AsyncQueue<T> {
     return reservation.future;
   }
 
-  /**
-   * Returns [item] back to the queue
-   */
-
+  /// Returns [item] back to the queue
   void release(T resource) {
     _resources.add(resource);
     _dequeue();
   }
 
-  /**
-   * Dequeue any available items and notify waiting readers
-   */
-
+  /// Dequeue any available items and notify waiting readers
   void _dequeue() {
     while (_resources.isNotEmpty && _reservations.isNotEmpty) {
       T resource = _resources.removeFirst();
@@ -53,8 +44,6 @@ class AsyncQueue<T> {
     }
   }
 
-  /**
-   * Check if the queue has available resources for reservation
-   */
+  /// Check if the queue has available resources for reservation
   bool get hasAvailableSlots => _resources.isNotEmpty;
 }

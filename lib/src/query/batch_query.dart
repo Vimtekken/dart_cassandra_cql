@@ -12,10 +12,7 @@ class BatchQuery extends QueryInterface {
       Consistency? this.serialConsistency,
       BatchType this.type: BatchType.LOGGED});
 
-  /**
-   * Add a new [Query] to the batch
-   */
-
+  // Add a new [Query] to the batch
   void add(Query query) {
     queryList.add(query);
   }

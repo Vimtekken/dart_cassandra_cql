@@ -4,32 +4,20 @@ class ChunkedInputReader {
   final _bufferedChunks = ListQueue<List<int>>();
   int _usedHeadBytes = 0;
 
-  /**
-   * Add a [chunk] to the buffer queue
-   */
-
+  /// Add a [chunk] to the buffer queue
   void add(Uint8List? chunk) {
     if (chunk != null) _bufferedChunks.add(chunk);
   }
 
-  /**
-   * Clear buffer
-   */
-
+  /// Clear buffer
   void clear() => _bufferedChunks.clear();
 
-  /**
-   * Get the total available bytes in all chunk buffers (excluding bytes already de-queued from head buffer).
-   */
-
+  /// Get the total available bytes in all chunk buffers (excluding bytes already de-queued from head buffer).
   int get length => _bufferedChunks.fold(
       -_usedHeadBytes, (int count, List<int> el) => count + el.length);
 
-  /**
-   * Return the next byte in the buffer without modifying the read pointer.
-   * Returns the [int] value of the next byte or null if no data is available
-   */
-
+  /// Return the next byte in the buffer without modifying the read pointer.
+  /// Returns the [int] value of the next byte or null if no data is available
   int? peekNextByte() {
     // No data available
     if (_bufferedChunks.isEmpty || length < 1) {
@@ -39,12 +27,9 @@ class ChunkedInputReader {
     return _bufferedChunks.first[_usedHeadBytes];
   }
 
-  /**
-   * Try to read [count] bytes into [destination] at the specified [offset].
-   * This method will automatically de-queue exhausted head buffers from the queue
-   * and will return the total number of bytes written
-   */
-
+  /// Try to read [count] bytes into [destination] at the specified [offset].
+  /// This method will automatically de-queue exhausted head buffers from the queue
+  /// and will return the total number of bytes written
   int read(List<int?>? destination, int count, [int offset = 0]) {
     int writeOffset = offset;
     while (count > 0) {
@@ -79,12 +64,9 @@ class ChunkedInputReader {
     return writeOffset - offset;
   }
 
-  /**
-   * Skip [count] bytes from the input stream.
-   * This method will automatically de-queue exhausted head buffers from the queue
-   * and will return the total number of bytes skipped
-   */
-
+  /// Skip [count] bytes from the input stream.
+  /// This method will automatically de-queue exhausted head buffers from the queue
+  /// and will return the total number of bytes skipped
   int skip(int count) {
     int skippedBytesCount = 0;
     while (count > 0) {

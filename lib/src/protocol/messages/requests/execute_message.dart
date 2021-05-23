@@ -8,12 +8,9 @@ class ExecuteMessage extends QueryMessage implements RequestMessage {
     opcode = Opcode.EXECUTE;
   }
 
-  /**
-   * Write the bindings for the prepared statement using the
-   * binding type data we received when we prepared it as
-   * hints to the encoder
-   */
-
+  /// Write the bindings for the prepared statement using the
+  /// binding type data we received when we prepared it as
+  /// hints to the encoder
   void _writeBindings(TypeEncoder encoder) {
     if (bindings is Map<String?, Object?>) {
       Map<String?, Object?> bindingsMap = bindings as Map<String?, Object?>;

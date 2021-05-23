@@ -150,11 +150,8 @@ class DataType extends Enum<int> {
     return name;
   }
 
-  /**
-   * Attempt to guess the correct [DataType] for the given. Returns
-   * the guessed [DataType] or null if type cannot be guessed
-   */
-
+  /// Attempt to guess the correct [DataType] for the given. Returns
+  /// the guessed [DataType] or null if type cannot be guessed
   static DataType? guessForValue(Object value) {
     if (value is bool) {
       return BOOLEAN;

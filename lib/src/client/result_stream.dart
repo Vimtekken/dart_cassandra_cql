@@ -81,9 +81,7 @@ class ResultStream {
 
   Stream<Map<String?, Object?>> get stream => _streamController.stream;
 
-  /**
-   * Create a new [ResultStream] by paging through [this._query] object with a page size of [this._pageSize].
-   */
+  /// Create a new [ResultStream] by paging through [this._query] object with a page size of [this._pageSize].
   ResultStream(PagedQueryExecutor this._queryExecutor, Query this._query,
       int this._pageSize) {
     _streamController = StreamController<Map<String?, Object?>>(

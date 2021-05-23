@@ -1,17 +1,17 @@
 part of dart_cassandra_cql.connection;
 
 class SimpleConnectionPool extends ConnectionPool {
-  // The list of all pool connections
+  /// The list of all pool connections
   final List<Connection> _pool = [];
 
-  // The list of maintained connections per host:port combination
+  /// The list of maintained connections per host:port combination
   final Map<String, Set<Connection>> _poolPerHost =
       HashMap<String, Set<Connection>>();
 
-  // Pending list of reconnect attempts
+  /// Pending list of reconnect attempts
   final Map<String, Future> _pendingReconnects = HashMap<String, Future>();
 
-  // Server event listeners
+  /// Server event listeners
   Connection? _eventSubscriber;
   StreamSubscription? _eventSubscription;
 
@@ -19,11 +19,8 @@ class SimpleConnectionPool extends ConnectionPool {
 
   Completer? _poolConnected;
 
-  /**
-   * Create the connection pool by spawning [_config.poolSize] connections
-   * to the input list of [hosts]
-   */
-
+  /// Create the connection pool by spawning [_config.poolSize] connections
+  /// to the input list of [hosts]
   SimpleConnectionPool.fromHostList(
       List<String> hosts, PoolConfiguration poolConfig,
       {String? this.defaultKeyspace}) {
@@ -55,11 +52,9 @@ class SimpleConnectionPool extends ConnectionPool {
     //poolLogger.info("Created ${_pool.length} connections to ${hosts.length} hosts");
   }
 
-  /**
-   * Establish connections to the pool nodes and return a [Future] to be successfully completed when
-   * at least one connection is successfully established. The returned [Future] will fail if an
-   * [AuthenticationException] occurs or if all connection attempts fail.
-   */
+  /// Establish connections to the pool nodes and return a [Future] to be successfully completed when
+  /// at least one connection is successfully established. The returned [Future] will fail if an
+  /// [AuthenticationException] occurs or if all connection attempts fail.
   Future connect() {
     // Already connected/connecting
     if (_poolConnected != null) {
@@ -114,29 +109,23 @@ class SimpleConnectionPool extends ConnectionPool {
     return _poolConnected!.future;
   }
 
-  /**
-   * Disconnect all pool connections. If the [drain] flag is set to true, all pool connections
-   * will be drained prior to being disconnected and a [Future] will be returned that will complete
-   * when all connections are drained or when the [drainTimeout] expires. If [drain] is false then
-   * the returned [Future] will already be completed.
-   */
+  /// Disconnect all pool connections. If the [drain] flag is set to true, all pool connections
+  /// will be drained prior to being disconnected and a [Future] will be returned that will complete
+  /// when all connections are drained or when the [drainTimeout] expires. If [drain] is false then
+  /// the returned [Future] will already be completed.
   Future disconnect(
       {bool drain: true, Duration drainTimeout: const Duration(seconds: 5)}) {
     return Future.wait(_pool.map((Connection conn) =>
         conn.close(drain: drain, drainTimeout: drainTimeout)));
   }
 
-  /**
-   * Get back an active [Connection] from the pool.
-   */
+  /// Get back an active [Connection] from the pool.
   Future<Connection> getConnection() {
     return _findOneMatchingFilter(
         (Connection conn) => conn.healthy && conn.inService);
   }
 
-  /**
-   * Get back an active [Connection] from the pool to the specified [host] and [port].
-   */
+  /// Get back an active [Connection] from the pool to the specified [host] and [port].
   Future<Connection> getConnectionToHost(String? host, int? port) {
     return _findOneMatchingFilter((Connection conn) =>
         conn.healthy &&

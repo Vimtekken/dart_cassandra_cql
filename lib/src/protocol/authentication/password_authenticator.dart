@@ -4,9 +4,7 @@ class PasswordAuthenticator implements Authenticator {
   String? _userName;
   String? _password;
 
-  /**
-   * Create a new [BasicAuthenticator] with the specified [userName] and [password]
-   */
+  /// Create a new [BasicAuthenticator] with the specified [userName] and [password]
   PasswordAuthenticator(String userName, String password) {
     _userName = userName;
     _password = password;
@@ -19,15 +17,11 @@ class PasswordAuthenticator implements Authenticator {
     }
   }
 
-  /**
-   * Get the class of this authenticator
-   */
+  /// Get the class of this authenticator
   String get authenticatorClass =>
       "org.apache.cassandra.auth.PasswordAuthenticator";
 
-  /**
-   * Process the [challenge] sent by the server and return a [Uint8List] response
-   */
+  /// Process the [challenge] sent by the server and return a [Uint8List] response
   Uint8List answerChallenge(Uint8List? challenge) {
     ChunkedOutputWriter writer = ChunkedOutputWriter();
 

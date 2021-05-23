@@ -8,21 +8,15 @@ class Uuid {
 
   Uuid([this.value]);
 
-  /**
-   * Construct a [Uuid] from a the input [bytes] list
-   */
+  /// Construct a [Uuid] from a the input [bytes] list
   Uuid.fromBytes(List<int> bytes) : value = _uuidImpl.Uuid.unparse(bytes);
 
-  /**
-   * Create a V4 (randomised) uuid
-   */
+  /// Create a V4 (randomised) uuid
   factory Uuid.simple() {
     return Uuid(_uuidFactory.v4());
   }
 
-  /**
-   * Create a V1 (time-based) uuid
-   */
+  /// Create a V1 (time-based) uuid
   factory Uuid.timeBased() {
     return Uuid(_uuidFactory.v1());
   }
@@ -36,9 +30,6 @@ class Uuid {
     return value == other.value;
   }
 
-  /**
-   * Convert uuid to a [Uint8List] byte list
-   */
-
+  /// Convert uuid to a [Uint8List] byte list
   get bytes => Uint8List.fromList(_uuidImpl.Uuid.parse(value!));
 }
