@@ -184,7 +184,7 @@ main({bool enableLogger: false}) {
 
         client!.query(new cql.Query("SELECT * FROM test.test_type")).then(
             expectAsync(handleSuccess) as FutureOr<void> Function(
-                Iterable<Map<String?, Object?>>?));
+                Iterable<Map<String, Object?>>?));
       });
     });
 
@@ -236,8 +236,8 @@ main({bool enableLogger: false}) {
           expect(message, new isInstanceOf<cql.RowsResultMessage>());
           cql.RowsResultMessage res = message as cql.RowsResultMessage;
           expect(res.rows!.length, equals(1));
-          Map<String?, Object?> row = res.rows!.first;
-          Map<String?, Object?> expectedValues = {
+          Map<String, Object?> row = res.rows.first;
+          Map<String, Object?> expectedValues = {
             "ascii_type": "text4",
             "bigint_type": 9223372036854775807,
             "bool_type": true,
@@ -301,10 +301,10 @@ main({bool enableLogger: false}) {
               "${SERVER_HOST}:${SERVER_PORT}"
             ], poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-            void onResult(Iterable<Map<String?, Object?>> rows) {
+            void onResult(Iterable<Map<String, Object?>> rows) {
               expect(rows.length, equals(1));
 
-              Map<String?, Object?> row = rows.first;
+              Map<String, Object?> row = rows.first;
               expect(row.length, equals(2));
               expect(row["login"], equals("test"));
               expect(row["custom"], new isInstanceOf<Uint8List>());
@@ -313,7 +313,7 @@ main({bool enableLogger: false}) {
             client!
                 .query(new cql.Query("SELECT * from test.custom_types"))
                 .then(expectAsync(onResult) as FutureOr<void> Function(
-                    Iterable<Map<String?, Object?>>?));
+                    Iterable<Map<String, Object?>>?));
           });
 
           test("with custom type handler", () {
@@ -326,10 +326,10 @@ main({bool enableLogger: false}) {
               "${SERVER_HOST}:${SERVER_PORT}"
             ], poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-            void onResult(Iterable<Map<String?, Object?>> rows) {
+            void onResult(Iterable<Map<String, Object?>> rows) {
               expect(rows.length, equals(1));
 
-              Map<String?, Object?> row = rows.first;
+              Map<String, Object?> row = rows.first;
               expect(row.length, equals(2));
               expect(row["login"], equals("test"));
               expect(row["custom"], new isInstanceOf<custom.CustomJson>());
@@ -343,7 +343,7 @@ main({bool enableLogger: false}) {
             client!
                 .query(new cql.Query("SELECT * from test.custom_types"))
                 .then(expectAsync(onResult) as FutureOr<void> Function(
-                    Iterable<Map<String?, Object?>>?));
+                    Iterable<Map<String, Object?>>?));
           });
         });
 
@@ -355,10 +355,10 @@ main({bool enableLogger: false}) {
                   autoDiscoverNodes: false,
                   protocolVersion: cql.ProtocolVersion.V3));
           expect(client!.query(new cql.Query("SELECT * from test.tuple_test")),
-              completion((Iterable<Map<String?, Object?>> rows) {
+              completion((Iterable<Map<String, Object?>> rows) {
             expect(rows.length, equals(1));
-            Map<String?, Object?> row = rows.first;
-            Map<String?, Object?> expectedValues = {
+            Map<String, Object?> row = rows.first;
+            Map<String, Object?> expectedValues = {
               "the_key": 1,
               "the_tuple": new cql.Tuple.fromIterable([10, "foo", true])
             };
@@ -392,10 +392,10 @@ main({bool enableLogger: false}) {
               ["${SERVER_HOST}:${SERVER_PORT}"],
               poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
           expect(client!.query(new cql.Query("SELECT * from test.type_test")),
-              completion((Iterable<Map<String?, Object?>> rows) {
+              completion((Iterable<Map<String, Object?>> rows) {
             expect(rows.length, equals(1));
-            Map<String?, Object?> row = rows.first;
-            Map<String?, Object?> expectedValues = {
+            Map<String, Object?> row = rows.first;
+            Map<String, Object?> expectedValues = {
               "ascii_type": "text4",
               "bigint_type": 9223372036854775807,
               "bool_type": true,
@@ -480,13 +480,13 @@ main({bool enableLogger: false}) {
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"],
             poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-        void streamCallback(Map<String?, Object?> row) {}
+        void streamCallback(Map<String, Object?> row) {}
 
         client!
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
             .listen(expectAsync(streamCallback, count: 10, max: 10) as void
-                Function(Map<String?, Object?>)?);
+                Function(Map<String, Object?>)?);
       });
 
       test("process streamed rows (preferBiggerTcpPackets)", () {
@@ -499,13 +499,13 @@ main({bool enableLogger: false}) {
             poolConfig: new cql.PoolConfiguration(
                 autoDiscoverNodes: false, preferBiggerTcpPackets: true));
 
-        void streamCallback(Map<String?, Object?> row) {}
+        void streamCallback(Map<String, Object?> row) {}
 
         client!
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
             .listen(expectAsync(streamCallback, count: 10, max: 10) as void
-                Function(Map<String?, Object?>)?);
+                Function(Map<String, Object?>)?);
       });
 
       test("pause/resume", () {
@@ -520,7 +520,7 @@ main({bool enableLogger: false}) {
         late StreamSubscription streamSubscription;
         int rowCount = 0;
 
-        void streamCallback(Map<String?, Object?> row) {
+        void streamCallback(Map<String, Object?> row) {
           rowCount++;
           if (rowCount == 5) {
             streamSubscription.pause();
@@ -533,7 +533,7 @@ main({bool enableLogger: false}) {
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
             .listen(expectAsync(streamCallback, count: 10, max: 10) as void
-                Function(Map<String?, Object?>)?);
+                Function(Map<String, Object?>)?);
       });
 
       test("close", () {
@@ -548,7 +548,7 @@ main({bool enableLogger: false}) {
         late StreamSubscription streamSubscription;
         int rowCount = 0;
 
-        void streamCallback(Map<String?, Object?> row) {
+        void streamCallback(Map<String, Object?> row) {
           rowCount++;
           if (rowCount == 5) {
             streamSubscription.cancel();
@@ -559,7 +559,7 @@ main({bool enableLogger: false}) {
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
             .listen(expectAsync(streamCallback, count: 5, max: 5) as void
-                Function(Map<String?, Object?>)?);
+                Function(Map<String, Object?>)?);
       });
 
       test("connection lost", () {
@@ -575,7 +575,7 @@ main({bool enableLogger: false}) {
 
         bool firstInvocation = true;
 
-        void streamCallback(Map<String?, Object?> row) {
+        void streamCallback(Map<String, Object?> row) {
           if (firstInvocation) {
             firstInvocation = false;
             subscription.pause();
@@ -607,7 +607,7 @@ main({bool enableLogger: false}) {
 
         bool firstRun = true;
 
-        void streamCallback(Map<String?, Object?> row) {
+        void streamCallback(Map<String, Object?> row) {
           if (firstRun) {
             firstRun = false;
             server.disconnectClient(0);
@@ -619,7 +619,7 @@ main({bool enableLogger: false}) {
                 pageSize: 4)
             .listen(
                 expectAsync(streamCallback, count: 10, max: 10) as void
-                    Function(Map<String?, Object?>)?,
+                    Function(Map<String, Object?>)?,
                 onError: (e) => print(e));
       });
     });

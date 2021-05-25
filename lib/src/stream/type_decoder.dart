@@ -302,7 +302,10 @@ class TypeDecoder {
         // numFields <String, TypeOption> tuples follow
         int numFields = readShort();
         for (int fieldIndex = 0; fieldIndex < numFields; fieldIndex++) {
-          spec.udtFields[readString(SizeType.SHORT)] = readTypeOption();
+          final String? fieldName = readString(SizeType.SHORT);
+          if (fieldName != null) {
+            spec.udtFields[fieldName] = readTypeOption();
+          }
         }
         break;
       case DataType.TUPLE:

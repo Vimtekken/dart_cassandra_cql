@@ -11,7 +11,7 @@ class TypeSpec {
   // V3 protocol: UDT
   String? keyspace;
   String? udtName;
-  late Map<String?, TypeSpec> udtFields;
+  late Map<String, TypeSpec> udtFields;
 
   // V3 protocol: TUPLE
   late List<TypeSpec> tupleFields;
@@ -34,7 +34,7 @@ class TypeSpec {
       throw ArgumentError(
           "MAP type should specify TypeSpec instances for both its keys and values");
     } else if (valueType == DataType.UDT) {
-      udtFields = LinkedHashMap<String?, TypeSpec>();
+      udtFields = LinkedHashMap<String, TypeSpec>();
     } else if (valueType == DataType.TUPLE) {
       tupleFields = [];
     }

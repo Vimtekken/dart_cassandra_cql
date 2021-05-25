@@ -2,7 +2,7 @@ part of dart_cassandra_cql.protocol;
 
 class ExecuteMessage extends QueryMessage implements RequestMessage {
   Uint8List? queryId;
-  Map<String?, TypeSpec>? bindingTypes;
+  Map<String, TypeSpec>? bindingTypes;
 
   ExecuteMessage() : super() {
     opcode = Opcode.EXECUTE;
@@ -12,8 +12,8 @@ class ExecuteMessage extends QueryMessage implements RequestMessage {
   /// binding type data we received when we prepared it as
   /// hints to the encoder
   void _writeBindings(TypeEncoder encoder) {
-    if (bindings is Map<String?, Object?>) {
-      Map<String?, Object?> bindingsMap = bindings as Map<String?, Object?>;
+    if (bindings is Map<String, Object?>) {
+      Map<String, Object?> bindingsMap = bindings as Map<String, Object?>;
       encoder.writeUInt16(bindingsMap.length);
       bindingsMap.forEach((String? arg, Object? value) {
         encoder.writeTypedValue(arg, value, typeSpec: bindingTypes![arg]);

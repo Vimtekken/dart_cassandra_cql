@@ -212,8 +212,8 @@ class Connection {
 
   /// Encode and send a [message] to the server. Returns a [Future] to be
   /// completed with the query results or with an error if one occurs
-  Future<Message?> _writeMessage(RequestMessage message) {
-    final reply = Completer<Message?>();
+  Future<Message> _writeMessage(RequestMessage message) {
+    final reply = Completer<Message>();
     // Make sure we have flushed our socket data and then
     // block till we get back a frame writer
     // We also assign returned future to _socketFlushed to avoid
@@ -415,7 +415,7 @@ class Connection {
         ..resultPageSize = pageSize
         ..pagingState = pagingState;
 
-      return _cast<ResultMessage?>(await _writeMessage(message));
+      return _cast<ResultMessage>(await _writeMessage(message));
     } else {
       // Prepared query. V3 of the protocol does not support named bindings so we need to
       // map them to positional ones
@@ -430,7 +430,7 @@ class Connection {
         ..resultPageSize = pageSize
         ..pagingState = pagingState;
 
-      return _cast<ResultMessage?>(await _writeMessage(message));
+      return _cast<ResultMessage>(await _writeMessage(message));
     }
   }
 

@@ -173,8 +173,8 @@ main({bool enableLogger: false}) {
             return conn!.execute(new cql.Query("SELECT * from test.type_test"));
           }), completion((cql.RowsResultMessage res) {
         expect(res.rows!.length, equals(1));
-        Map<String?, Object?> row = res.rows!.first;
-        Map<String?, Object?> expectedValues = {
+        Map<String, Object?> row = res.rows!.first;
+        Map<String, Object?> expectedValues = {
           "ascii_type": "text4",
           "bigint_type": 9223372036854775807,
           "bool_type": true,
@@ -208,8 +208,8 @@ main({bool enableLogger: false}) {
                 .execute(new cql.Query("SELECT * FROM test.user_profiles"));
           }), completion((cql.RowsResultMessage res) {
         expect(res.rows!.length, equals(1));
-        Map<String?, Object?> row = res.rows!.first;
-        Map<String?, Object?> expectedValues = {
+        Map<String, Object?> row = res.rows!.first;
+        Map<String, Object?> expectedValues = {
           "login": "test_user",
           "addresses": {
             "home": {

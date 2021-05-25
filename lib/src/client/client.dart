@@ -33,17 +33,17 @@ class Client {
             pageSize: pageSize, pagingState: pagingState);
   }
 
-  /// Execute a select query and return back a [Iterable] of [Map<String?, Object?>] with the
+  /// Execute a select query and return back a [Iterable] of [Map<String, Object?>] with the
   /// result rows.
-  Future<Iterable<Map<String?, Object?>>?> query(Query query) async {
+  Future<Iterable<Map<String, Object?>>?> query(Query query) async {
     // Run query and return back
-    return (await _executeSingle(query))!.rows; // @note XXX
+    return (await _executeSingle(query))?.rows; // @note XXX
   }
 
   /// Lazily execute a select query and return back a [Stream] object which emits one [Map<String, Object]
   /// event per result row. The client uses cassandra's pagination API to load additional result pages on
   /// demand. The result page size is controlled by the [pageSize] parameter (defaults to 100 rows).
-  Stream<Map<String?, Object?>> stream(Query query, {int pageSize: 100}) {
+  Stream<Map<String, Object?>> stream(Query query, {int pageSize: 100}) {
     return ResultStream(_executeSingle, query, pageSize).stream;
   }
 
