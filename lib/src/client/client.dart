@@ -2,8 +2,8 @@ part of dart_cassandra_cql.client;
 
 class Client {
   final ConnectionPool connectionPool;
-  final Map<String, Future<PreparedResultMessage?>> preparedQueries =
-      Map<String, Future<PreparedResultMessage?>>();
+  final Map<String, PreparedResultMessage?> preparedQueries =
+      Map<String, PreparedResultMessage?>();
 
   /// Create a new client and a [SimpleConnectionPool] to the supplied [hosts] optionally using
   /// the supplied [poolConfig]. If [poolConfig] is not specified, a default configuration will be used instead.
@@ -27,7 +27,7 @@ class Client {
   /// params may be supplied to enable pagination when performing single queries.
   Future<ResultMessage?> execute(QueryInterface query,
       {int? pageSize: null, Uint8List? pagingState: null}) {
-    return (query is BatchQuery)
+    return query is BatchQuery
         ? _executeBatch(query)
         : _executeSingle(query as Query,
             pageSize: pageSize, pagingState: pagingState);
@@ -57,18 +57,20 @@ class Client {
   }
 
   /// Prepare the given query and return back a [Future] with a [PreparedResultMessage]
-  Future<PreparedResultMessage?>? _prepare(Query query) {
+  Future<PreparedResultMessage?>? _prepare(Query query) async {
     // If the query is preparing/already prepared, return its future
     if (preparedQueries.containsKey(query.query)) {
+      clientLogger.fine('query already prepared');
       return preparedQueries[query.query];
     }
 
     // Queue for preparation and return back a future
-    final deferred = connectionPool
-        .getConnection()
-        .then((Connection conn) => conn.prepare(query));
-    preparedQueries[query.query] = deferred;
-    return deferred;
+    clientLogger.fine('Getting connection for query preparation');
+    final Connection connection = await connectionPool.getConnection();
+    clientLogger.fine('Prepare query');
+    final PreparedResultMessage? resultMessage = await connection.prepare(query);
+    preparedQueries[query.query] = resultMessage;
+    return resultMessage;
   }
 
   /// Execute a single [query] with optional [pageSize] and [pagingState] data

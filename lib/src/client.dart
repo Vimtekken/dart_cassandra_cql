@@ -6,6 +6,7 @@ import "dart:typed_data";
 
 // Internal lib dependencies
 import 'package:dart_cassandra_cql/src/connection.dart';
+import 'package:dart_cassandra_cql/src/logging.dart';
 import 'package:dart_cassandra_cql/src/protocol.dart';
 import 'package:dart_cassandra_cql/src/query.dart';
 import 'package:dart_cassandra_cql/src/exceptions.dart';
