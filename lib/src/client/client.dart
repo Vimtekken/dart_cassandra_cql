@@ -90,46 +90,46 @@ class Client {
     }
   }
 
+  Future<ResultMessage?> _prepareAndExecute(Query query,
+      {int? pageSize: null, Uint8List? pagingState: null}) async {
+    final PreparedResultMessage? preparedResult  = await _prepare(query);
+
+    try {
+      final Connection conn = await connectionPool.getConnectionToHost(
+          preparedResult!.host, preparedResult.port);
+      final ResultMessage? result = await conn.execute(query,
+          preparedResult: preparedResult,
+          pageSize: pageSize,
+          pagingState: pagingState);
+      return result;
+    } on ConnectionLostException {
+      clientLogger.info('_executeUnprepared : Connection Lost Exception');
+      return _prepareAndExecute(query,
+          pageSize: pageSize, pagingState: pagingState);
+    } on StreamReservationException {
+      clientLogger.info('_executeUnprepared : Stream Reservation Exception');
+      return _prepareAndExecute(query,
+          pageSize: pageSize, pagingState: pagingState);
+    } on NoHealthyConnectionsException {
+      clientLogger.info('_executeUnprepared : No Healthy Connections Exception');
+      preparedQueries.remove(query.query);
+      return _prepareAndExecute(query,
+          pageSize: pageSize, pagingState: pagingState);
+    }
+  }
+
   /// Execute a single [query] with optional [pageSize] and [pagingState] data
   /// and return back a [Future<ResultMessage>]
   Future<ResultMessage?> _executeSingle(Query query,
       {int? pageSize: null, Uint8List? pagingState: null}) async {
-    final completer = Completer<ResultMessage?>();
-
     // If this is a normal query, pick the next available pool connection and execute it
     if (!query.prepared) {
       return _executeUnprepared(query,
           pageSize: pageSize, pagingState: pagingState);
+    } else {
+      return _prepareAndExecute(query,
+          pageSize: pageSize, pagingState: pagingState);
     }
-
-    void _prepareAndExecute() {
-      // Prepare query; any error will make our returned future fail
-      _prepare(query)!
-          // Fetch a connection for the node this query was prepared at and execute it
-          .then((PreparedResultMessage? preparedResult) => connectionPool
-                  .getConnectionToHost(
-                      preparedResult!.host, preparedResult.port)
-                  .then((Connection conn) => conn.execute(query,
-                      preparedResult: preparedResult,
-                      pageSize: pageSize,
-                      pagingState: pagingState))
-                  .then(completer.complete)
-                  // If we lose our connection OR we cannot reserve a connection stream, retry on another connection to the same host
-                  .catchError((_) => _prepareAndExecute(),
-                      test: (e) =>
-                          e is ConnectionLostException ||
-                          e is StreamReservationException)
-                  // We run out of connections to use this prepared result so we need to prepare it again on a new node
-                  .catchError((_) {
-                preparedQueries.remove(query.query);
-                _prepareAndExecute();
-              }, test: (e) => e is NoHealthyConnectionsException))
-          // Any other error will cause the future to fail
-          .catchError(completer.completeError);
-    }
-
-    _prepareAndExecute();
-    return await completer.future;
   }
 
   /// Execute a batch [query] and return back a [Future<ResultMessage>]
