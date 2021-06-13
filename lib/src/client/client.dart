@@ -92,7 +92,7 @@ class Client {
 
   Future<ResultMessage?> _prepareAndExecute(Query query,
       {int? pageSize: null, Uint8List? pagingState: null}) async {
-    final PreparedResultMessage? preparedResult  = await _prepare(query);
+    final PreparedResultMessage? preparedResult = await _prepare(query);
 
     try {
       final Connection conn = await connectionPool.getConnectionToHost(
@@ -111,7 +111,8 @@ class Client {
       return _prepareAndExecute(query,
           pageSize: pageSize, pagingState: pagingState);
     } on NoHealthyConnectionsException {
-      clientLogger.info('_executeUnprepared : No Healthy Connections Exception');
+      clientLogger
+          .info('_executeUnprepared : No Healthy Connections Exception');
       preparedQueries.remove(query.query);
       return _prepareAndExecute(query,
           pageSize: pageSize, pagingState: pagingState);

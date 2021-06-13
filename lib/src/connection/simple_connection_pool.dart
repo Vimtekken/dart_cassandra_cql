@@ -24,13 +24,10 @@ class SimpleConnectionPool extends ConnectionPool {
   SimpleConnectionPool.fromHostList(
       List<String> hosts, PoolConfiguration poolConfig,
       {String? this.defaultKeyspace}) {
-    if (hosts == null || hosts.isEmpty) {
+    if (hosts.isEmpty) {
       throw ArgumentError("Host list cannot be empty");
     }
 
-    if (poolConfig == null) {
-      throw ArgumentError("A valid pool configuration is required");
-    }
     this.poolConfig = poolConfig;
 
     for (int hostIndex = 0; hostIndex < hosts.length; hostIndex++) {
@@ -55,7 +52,7 @@ class SimpleConnectionPool extends ConnectionPool {
   /// Establish connections to the pool nodes and return a [Future] to be successfully completed when
   /// at least one connection is successfully established. The returned [Future] will fail if an
   /// [AuthenticationException] occurs or if all connection attempts fail.
-  Future connect() {
+  Future<void> connect() async {
     // Already connected/connecting
     if (_poolConnected != null) {
       return _poolConnected!.future;
@@ -68,21 +65,23 @@ class SimpleConnectionPool extends ConnectionPool {
     //
     int activeConnections = 0;
     int remainingConnections = _pool.length;
-    _pool.forEach((Connection conn) {
-      conn.open().then((_) {
+    for (Connection conn in _pool) {
+      try {
+        await conn.open();
+
         // Select the first open connection as our stream listener
         if (_eventSubscriber == null) {
           _registerEventListener(conn);
         }
 
-        activeConnections++;
+        ++activeConnections;
 
         // All connection futures resolved. We got at least one connection
         // so we should resolve the _poolConnected future
         if (--remainingConnections == 0) {
           _poolConnected!.complete();
         }
-      }).catchError((err) {
+      } catch (err) {
         poolLogger.severe(err);
 
         --remainingConnections;
@@ -103,8 +102,8 @@ class SimpleConnectionPool extends ConnectionPool {
             _poolConnected!.complete();
           }
         }
-      });
-    });
+      }
+    }
 
     return _poolConnected!.future;
   }
@@ -134,31 +133,31 @@ class SimpleConnectionPool extends ConnectionPool {
         conn.port == port);
   }
 
-  Future<Connection> _findOneMatchingFilter(Function filter) {
-    return connect().then((_) {
-      // Prefer healthry connections matching the filter predicate that have available
-      // query multiplexing slots so we do not need to wait
-      Connection? healthyConnection = _pool.firstWhereOrNull(
-          (Connection conn) => conn.hasAvailableStreams && filter(conn));
+  Future<Connection> _findOneMatchingFilter(Function filter) async {
+    await connect();
 
-      // Otherwise try to fetch the first healthy connection from the pool matching the filter predicate
-      if (healthyConnection == null) {
-        healthyConnection =
-            _pool.firstWhereOrNull(filter as bool Function(Connection));
-      }
+    // Prefer healthry connections matching the filter predicate that have available
+    // query multiplexing slots so we do not need to wait
+    Connection? healthyConnection = _pool.firstWhereOrNull(
+        (Connection conn) => conn.hasAvailableStreams && filter(conn));
 
-      if (healthyConnection == null) {
-        return Future.error(
-            NoHealthyConnectionsException("No healthy connections available"));
-      } else {
-        // Remove the connection and append it to the end of the list
-        // so we can round-robin our connections
-        _pool
-          ..remove(healthyConnection)
-          ..add(healthyConnection);
-      }
-      return Future.value(healthyConnection);
-    });
+    // Otherwise try to fetch the first healthy connection from the pool matching the filter predicate
+    if (healthyConnection == null) {
+      healthyConnection =
+          _pool.firstWhereOrNull(filter as bool Function(Connection));
+    }
+
+    if (healthyConnection == null) {
+      return Future.error(
+          NoHealthyConnectionsException("No healthy connections available"));
+    } else {
+      // Remove the connection and append it to the end of the list
+      // so we can round-robin our connections
+      _pool
+        ..remove(healthyConnection)
+        ..add(healthyConnection);
+    }
+    return healthyConnection;
   }
 
   void _registerEventListener(Connection conn) {
