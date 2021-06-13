@@ -24,7 +24,7 @@ class Connection {
 
   // Tracked futures/streams
   late Map<int, Completer<Message?>> _pendingResponses;
-  Completer? _connected;
+  Completer<void>? _connected;
   Completer? _drained;
   late Future _socketFlushed;
 
@@ -41,7 +41,7 @@ class Connection {
 
   /// Abort any pending requests with [reason] as the error and clean up.
   /// Returns a [Future] to be completed when the client socket has been successfully closed
-  Future _abortRequestsAndCleanup(reason) {
+  Future<void> _abortRequestsAndCleanup(reason) async {
     // Clear healthy flag
     healthy = false;
 
@@ -57,23 +57,24 @@ class Connection {
     _connected = null;
 
     // Kill socket
-    Future socketClosed = _socket != null ? _socket!.close() : Future.value();
+    if (_socket != null) await _socket!.close();
     _socket = null;
-
-    return socketClosed;
   }
 
   /// Attempt to reconnect to the server. If the attempt fails, it will be retried after
   /// [reconnectWaitTime] ms up to [maxConnectionAttempts] times. If all connection attempts
   /// fail, then the [_connected] [Future] returned by a call to [open[ will also fail
-  Future _reconnect() {
+  Future<void> _reconnect() async {
     if (_connected == null) {
-      _connected = Completer();
+          _connected = Completer<void>();
     }
+    final connFuture = _connected!.future;
 
     connectionLogger.info(
         "[${connId}] Trying to connect to ${host}:${port} [attempt ${_connectionAttempt + 1}/${_poolConfig.maxConnectionAttempts}]");
-    Socket.connect(host, port!).then((Socket s) {
+    
+    try {
+      final Socket s = await Socket.connect(host, port!);
       _socket = s;
       _socketFlushed = Future.value(true);
 
@@ -109,7 +110,7 @@ class Connection {
 
       // Handshake with the server
       _handshake();
-    }).catchError((err, trace) {
+    } catch (error, trace) {
       if (++_connectionAttempt >= _poolConfig.maxConnectionAttempts) {
         String errorMessage =
             "[${connId}] Could not connect to ${host}:${port} after ${_poolConfig.maxConnectionAttempts} attempts. Giving up";
@@ -123,11 +124,11 @@ class Connection {
         // Retry after reconnectWaitTime ms
         Timer(_poolConfig.reconnectWaitTime, _reconnect);
       }
-    });
+    }
 
-    return _connected!.future;
+    return connFuture;
   }
-
+  
   Future<Message> _authenticate(AuthenticateMessage authMessage) {
     // Check if an authenticator is specified
     if (_poolConfig.authenticator == null) {
@@ -321,7 +322,7 @@ class Connection {
 
   /// Open a working connection to the server using [config.cqlVersion] and optionally select
   /// keyspace [defaultKeyspace]. Returns a [Future] to be completed on a successful protocol handshake
-  Future open() {
+  Future<void> open() {
     // Prevent multiple connection attempts
     if (_connected != null) {
       return _connected!.future;

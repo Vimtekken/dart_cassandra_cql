@@ -92,18 +92,6 @@ main({bool enableLogger: false}) {
       }).catchError(expectAsync(handleError));
     });
 
-    test("Multiple connection attempts", () {
-      cql.PoolConfiguration config =
-          new cql.PoolConfiguration(protocolVersion: cql.ProtocolVersion.V2);
-      conn = new cql.Connection("conn-0", SERVER_HOST, SERVER_PORT,
-          config: config);
-      Future f1 = conn!.open();
-      Future f2 = conn!.open();
-      expect(f1, equals(f2));
-
-      return f1;
-    });
-
     test("V2 handshake", () {
       cql.PoolConfiguration config =
           new cql.PoolConfiguration(protocolVersion: cql.ProtocolVersion.V2);
