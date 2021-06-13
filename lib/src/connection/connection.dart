@@ -274,7 +274,6 @@ class Connection {
 
     switch (message.opcode) {
       case Opcode.READY:
-        print('OPCODE READY');
         responseCompleter!.complete(VoidResultMessage());
         break;
       case Opcode.AUTHENTICATE:

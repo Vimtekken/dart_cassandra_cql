@@ -437,7 +437,6 @@ main({bool enableLogger: false}) {
                 bindings: ["http://www.test.com", "login_page", 2]))
             ..add(new cql.Query(query,
                 bindings: ["http://www.test.com", "main_page", 3])));
-          print(result);
           handleResult(result);
         });
 
@@ -685,7 +684,7 @@ INSERT INTO test.type_test (
 
       test(
           "prepare and execute query; fallback to other connection on same host (V2)",
-          () {
+          () async {
         server.setReplayList([
           "prepare_v2.dump", "void_result_v2.dump",
           "void_result_v2.dump" // 2nd attempt
@@ -741,20 +740,11 @@ INSERT INTO test.type_test (
           ])
         };
 
-        Function done = expectAsync((_) {});
+        await client!.execute(query);
 
-        client!.execute(query).then((_) {
-          // Kill 1st connection so we run the next prepared statement attempt
-          // on the second connection
-          server.disconnectClient(0);
+        server.disconnectClient(0);
 
-          // 2nd statement should reuse the prepared statement data
-          // on the 2nd connection to the same host
-          client!
-              .execute(query)
-              .then(done as FutureOr<void> Function(ResultMessage?))
-              .catchError(print);
-        });
+        await client!.execute(query);
       });
 
       test(

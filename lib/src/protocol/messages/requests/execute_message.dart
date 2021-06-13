@@ -25,8 +25,6 @@ class ExecuteMessage extends QueryMessage implements RequestMessage {
 
       int arg = 0;
       bindingsList.forEach((dynamic value) {
-        print(
-            'Processing arg $arg : $value : ${bindingTypeList.elementAt(arg)}');
         encoder.writeTypedValue("$arg", value,
             typeSpec: bindingTypeList.elementAt(arg++));
       });
