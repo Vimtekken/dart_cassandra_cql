@@ -68,9 +68,26 @@ class Client {
     clientLogger.fine('Getting connection for query preparation');
     final Connection connection = await connectionPool.getConnection();
     clientLogger.fine('Prepare query');
-    final PreparedResultMessage? resultMessage = await connection.prepare(query);
+    final PreparedResultMessage? resultMessage =
+        await connection.prepare(query);
     preparedQueries[query.query] = resultMessage;
     return resultMessage;
+  }
+
+  Future<ResultMessage?> _executeUnprepared(Query query,
+      {int? pageSize: null, Uint8List? pagingState: null}) async {
+    try {
+      final Connection connection = await connectionPool.getConnection();
+      final ResultMessage? result = await connection.execute(query,
+          pageSize: pageSize, pagingState: pagingState);
+      return result;
+    } on ConnectionLostException {
+      clientLogger.info('_executeUnprepared : Connection Lost Exception');
+      _executeUnprepared(query, pageSize: pageSize, pagingState: pagingState);
+    } on StreamReservationException {
+      clientLogger.info('_executeUnprepared : Stream Reservation Exception');
+      _executeUnprepared(query, pageSize: pageSize, pagingState: pagingState);
+    }
   }
 
   /// Execute a single [query] with optional [pageSize] and [pagingState] data
@@ -81,23 +98,8 @@ class Client {
 
     // If this is a normal query, pick the next available pool connection and execute it
     if (!query.prepared) {
-      void _execute() {
-        connectionPool
-            .getConnection()
-            .then((Connection conn) => conn.execute(query,
-                pageSize: pageSize, pagingState: pagingState))
-            .then(completer.complete)
-            // If we lose our connection OR we cannot reserve a connection stream, retry on another connection
-            .catchError((_) => _execute(),
-                test: (e) =>
-                    e is ConnectionLostException ||
-                    e is StreamReservationException)
-            // Any other error will cause the future to fail
-            .catchError(completer.completeError);
-      }
-
-      _execute();
-      return await completer.future;
+      return _executeUnprepared(query,
+          pageSize: pageSize, pagingState: pagingState);
     }
 
     void _prepareAndExecute() {
@@ -131,9 +133,7 @@ class Client {
   }
 
   /// Execute a batch [query] and return back a [Future<ResultMessage>]
-  Future<ResultMessage?> _executeBatch(BatchQuery query) {
-    return connectionPool
-        .getConnection()
-        .then((Connection conn) => conn.executeBatch(query));
+  Future<ResultMessage?> _executeBatch(BatchQuery query) async {
+    return (await connectionPool.getConnection()).executeBatch(query);
   }
 }
