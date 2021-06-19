@@ -97,6 +97,8 @@ class SimpleConnectionPool extends ConnectionPool {
           if (activeConnections == 0) {
             _poolConnected!.completeError(NoHealthyConnectionsException(
                 "Could not connect to any of the supplied hosts"));
+            // Setting this to null allows a new connection processes to start. After a delay.
+            Future.delayed(const Duration(seconds: 1)).then((_) => _poolConnected = null);
           } else {
             // At least one connection has been established
             _poolConnected!.complete();

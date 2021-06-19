@@ -37,7 +37,8 @@ class Connection {
     _pendingResponses = Map<int, Completer<Message?>>();
   }
 
-  StreamController? _eventController;
+  StreamController<EventMessage> _eventController =
+      StreamController<EventMessage>();
 
   /// Abort any pending requests with [reason] as the error and clean up.
   /// Returns a [Future] to be completed when the client socket has been successfully closed
@@ -63,16 +64,16 @@ class Connection {
 
   /// Attempt to reconnect to the server. If the attempt fails, it will be retried after
   /// [reconnectWaitTime] ms up to [maxConnectionAttempts] times. If all connection attempts
-  /// fail, then the [_connected] [Future] returned by a call to [open[ will also fail
+  /// fail, then the [_connected] [Future] returned by a call to [open] will also fail
   Future<void> _reconnect() async {
     if (_connected == null) {
-          _connected = Completer<void>();
+      _connected = Completer<void>();
     }
     final connFuture = _connected!.future;
 
     connectionLogger.info(
         "[${connId}] Trying to connect to ${host}:${port} [attempt ${_connectionAttempt + 1}/${_poolConfig.maxConnectionAttempts}]");
-    
+
     try {
       final Socket s = await Socket.connect(host, port!);
       _socket = s;
@@ -128,7 +129,7 @@ class Connection {
 
     return connFuture;
   }
-  
+
   Future<Message> _authenticate(AuthenticateMessage authMessage) {
     // Check if an authenticator is specified
     if (_poolConfig.authenticator == null) {
@@ -294,10 +295,8 @@ class Connection {
         responseCompleter!.complete(message);
         break;
       case Opcode.EVENT:
-        if (_eventController != null &&
-            _eventController!.hasListener &&
-            !_eventController!.isPaused) {
-          _eventController!.add(message as EventMessage);
+        if (_eventController.hasListener && !_eventController.isPaused) {
+          _eventController.add(message as EventMessage);
         }
         break;
       case Opcode.ERROR:
@@ -342,11 +341,11 @@ class Connection {
   /// succeed.
   ///
   /// This method returns a [Future] to be completed when the connection is shut down
-  Future close(
-      {bool drain: true, Duration drainTimeout: const Duration(seconds: 5)}) {
+  Future<void> close(
+      {bool drain: true, Duration drainTimeout: const Duration(seconds: 5)}) async {
     // Already closed
     if (_socket == null) {
-      return Future.value();
+      return;
     }
 
     connectionLogger.info("[${connId}] Closing (drain = ${drain})");
@@ -360,17 +359,15 @@ class Connection {
         _drained = Completer();
         _checkForDrainedRequests();
 
-        if (drainTimeout != null) {
-          Future.delayed(drainTimeout).then((_) {
-            if (_drained != null && !_drained!.isCompleted) {
-              _abortRequestsAndCleanup(
-                      ConnectionLostException('Connection drain timeout'))
-                  .then((_) {
-                _drained!.complete();
-              });
-            }
-          });
-        }
+        Future.delayed(drainTimeout).then((_) {
+          if (_drained != null && !_drained!.isCompleted) {
+            _abortRequestsAndCleanup(
+                    ConnectionLostException('Connection drain timeout'))
+                .then((_) {
+              _drained!.complete();
+            });
+          }
+        });
       }
 
       return _drained!.future;
@@ -390,7 +387,7 @@ class Connection {
           ? query.positionalQuery
           : query.query;
 
-    return _cast<PreparedResultMessage?>(await _writeMessage(message));
+    return _cast<PreparedResultMessage>(await _writeMessage(message));
   }
 
   /// Execute a single prepared or unprepared [query]. In the case of a prepared query,
@@ -444,7 +441,7 @@ class Connection {
       ..serialConsistency = query.serialConsistency
       ..queryList = query.queryList;
 
-    return _cast<VoidResultMessage?>(await _writeMessage(message));
+    return _cast<VoidResultMessage>(await _writeMessage(message));
   }
 
   /// Request server notifications for each [EventRegistrationType] in [eventTypes]
@@ -452,22 +449,17 @@ class Connection {
   Stream<EventMessage> listenForEvents(
       Iterable<EventRegistrationType> eventTypes) {
     RegisterMessage message = RegisterMessage()
-      ..eventTypes = eventTypes as List<EventRegistrationType>?;
+      ..eventTypes = eventTypes.toList();
 
-    // Setup the stream controller
-    if (_eventController == null) {
-      _eventController = StreamController<EventMessage>();
-    }
+    open().then((_) => _writeMessage(message)).catchError((dynamic err) {
+      _eventController.addError(err);
+    });
 
-    open()
-        .then((_) => _writeMessage(message))
-        .catchError(_eventController!.addError);
-    return _eventController!.stream as Stream<EventMessage>;
+    return _eventController.stream;
   }
 
   /// Check if the connection has available stream slots for multiplexing additional queries
-  bool get hasAvailableStreams =>
-      _frameWriterPool != null && _frameWriterPool!.hasAvailableSlots;
+  bool get hasAvailableStreams => _frameWriterPool?.hasAvailableSlots ?? false;
 
   T? _cast<T>(x) => x is T ? x : null;
 }
