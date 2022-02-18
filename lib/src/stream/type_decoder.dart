@@ -4,10 +4,10 @@ class TypeDecoder {
   int _offset = 0;
   ByteData _buffer;
   Endian endianess = Endian.big;
-  ProtocolVersion protocolVersion;
+  ProtocolVersion? protocolVersion;
 
   TypeDecoder.fromBuffer(
-      ByteData this._buffer, ProtocolVersion this.protocolVersion);
+      ByteData this._buffer, ProtocolVersion? this.protocolVersion);
 
   int readSignedByte() {
     return _buffer.getInt8(_offset++);
@@ -20,53 +20,58 @@ class TypeDecoder {
   int readUInt() {
     int val = _buffer.getUint32(_offset, endianess);
     _offset += 4;
-
     return val;
   }
 
   int readInt() {
     int val = _buffer.getInt32(_offset, endianess);
     _offset += 4;
+    return val;
+  }
 
+  int readInt16() {
+    int val = _buffer.getInt16(_offset, endianess);
+    _offset += 2;
+    return val;
+  }
+
+  int readInt8() {
+    int val = _buffer.getInt8(_offset);
+    _offset += 1;
     return val;
   }
 
   double readFloat() {
     double val = _buffer.getFloat32(_offset, endianess);
     _offset += 4;
-
     return val;
   }
 
   double readDouble() {
     double val = _buffer.getFloat64(_offset, endianess);
     _offset += 8;
-
     return val;
   }
 
   int readLong() {
     int val = _buffer.getInt64(_offset, endianess);
     _offset += 8;
-
     return val;
   }
 
   int readSignedShort() {
     int val = _buffer.getInt16(_offset, endianess);
     _offset += 2;
-
     return val;
   }
 
   int readShort() {
     int val = _buffer.getUint16(_offset, endianess);
     _offset += 2;
-
     return val;
   }
 
-  int readLength(SizeType size) {
+  int readLength(SizeType? size) {
     return size == SizeType.LONG
         ? readInt()
         : (size == SizeType.SHORT ? readShort() : readByte());
@@ -81,7 +86,7 @@ class TypeDecoder {
     _offset += len;
   }
 
-  String readAsciiString(SizeType size, [int len = null]) {
+  String? readAsciiString(SizeType? size, [int? len = null]) {
     if (len == null) {
       len = readLength(size);
       if (len < 0) {
@@ -92,7 +97,7 @@ class TypeDecoder {
     return ascii.decode(Uint8List.view(_buffer.buffer, _offset - len, len));
   }
 
-  String readString(SizeType size, [int len = null]) {
+  String? readString(SizeType? size, [int? len = null]) {
     if (len == null) {
       len = readLength(size);
       if (len < 0) {
@@ -103,7 +108,7 @@ class TypeDecoder {
     return utf8.decode(Uint8List.view(_buffer.buffer, _offset - len, len));
   }
 
-  Uint8List readBytes(SizeType size, [int len = null]) {
+  Uint8List? readBytes(SizeType? size, [int? len = null]) {
     if (len == null) {
       len = readLength(size);
       // Null is defined as a negative length
@@ -119,35 +124,32 @@ class TypeDecoder {
     return Consistency.valueOf(readShort());
   }
 
-  List<String> readStringList(SizeType size) {
+  List<String?> readStringList(SizeType size) {
     int len = readLength(size);
     return List.generate(len, (_) => readString(size));
   }
 
-  Map<String, String> readStringMap(SizeType size) {
+  Map<String?, String?> readStringMap(SizeType size) {
     int len = readLength(size);
-    Map map = {};
+    Map<String?, String?> map = <String?, String?>{};
     while (len-- > 0) {
       map[readString(size)] = readString(size);
     }
     return map;
   }
 
-  Map<String, List<String>> readStringMultiMap(SizeType size) {
+  Map<String?, List<String?>> readStringMultiMap(SizeType size) {
     int len = readLength(size);
-    final map = <String, List<String>>{};
+    final Map<String?, List<String?>> map = <String?, List<String?>>{};
     while (len-- > 0) {
       map[readString(size)] = readStringList(size);
     }
     return map;
   }
 
-  /**
-   * Create a new [Header] object by parsing & verifying the protocol
-   * contained in the supplied [buffer]. This method will throw a
-   * [ParseException] if an error occurs while parsing header fields
-   */
-
+  /// Create a new [Header] object by parsing & verifying the protocol
+  /// contained in the supplied [buffer]. This method will throw a
+  /// [ParseException] if an error occurs while parsing header fields
   FrameHeader readHeader() {
     FrameHeader header = FrameHeader();
 
@@ -190,13 +192,10 @@ class TypeDecoder {
     return header;
   }
 
-  /**
-   * Read and decode VarInt. Returns the parsed [int] value
-   * Based on: https://github.com/datastax/cpp-driver/blob/deprecated/src/cql/cql_varint.cpp
-   * but exploits dart vm support for arbitary long ints to parse varInts of any size
-   */
-
-  BigInt readVarInt(SizeType size, [int len = null]) {
+  /// Read and decode VarInt. Returns the parsed [int] value
+  /// Based on: https://github.com/datastax/cpp-driver/blob/deprecated/src/cql/cql_varint.cpp
+  /// but exploits dart vm support for arbitary long ints to parse varInts of any size
+  BigInt? readVarInt(SizeType? size, [int? len = null]) {
     if (len == null) {
       len = readLength(size);
       // Null is defined as a negative length
@@ -207,12 +206,11 @@ class TypeDecoder {
 
     if (len < 1) {
       _offset += len;
-      throw ArgumentError(
-          "Could not parse varint value with length ${len}");
+      throw ArgumentError("Could not parse varint value with length ${len}");
     }
 
     // Read bytes
-    Uint8List buf = readBytes(size, len);
+    Uint8List buf = readBytes(size, len)!;
 
     int bytesToCopy = buf.lengthInBytes;
     int bytesToFill = 1;
@@ -233,15 +231,12 @@ class TypeDecoder {
     return value.toSigned(8 * bytesToCopy);
   }
 
-  /**
-   * Read and decode variable precision decimal int/double. Returns either an [int] or a [double]
-   * depending on the number of decimal points that the packed type contains.
-   *
-   * Based on: https://github.com/datastax/cpp-driver/blob/deprecated/src/cql/cql_decimal.cpp
-   * but exploits dart vm support for arbitary long ints/doubles to parse decimals of any size
-   */
-
-  Object readDecimal(SizeType size, [int len = null]) {
+  /// Read and decode variable precision decimal int/double. Returns either an [int] or a [double]
+  /// depending on the number of decimal points that the packed type contains.
+  ///
+  /// Based on: https://github.com/datastax/cpp-driver/blob/deprecated/src/cql/cql_decimal.cpp
+  /// but exploits dart vm support for arbitary long ints/doubles to parse decimals of any size
+  Object? readDecimal(SizeType? size, [int? len = null]) {
     if (len == null) {
       len = readLength(size);
       // Null is defined as a negative length
@@ -253,12 +248,11 @@ class TypeDecoder {
     // If we have less than 5 bytes then we cannot parse this
     if (len < 5) {
       _offset += len;
-      throw ArgumentError(
-          "Could not parse decimal value with length ${len}");
+      throw ArgumentError("Could not parse decimal value with length ${len}");
     }
 
     // Read bytes
-    Uint8List buf = readBytes(size, len);
+    Uint8List buf = readBytes(size, len)!;
 
     int bytesToCopy = buf.lengthInBytes - 4;
     int bytesToFill = 1;
@@ -284,39 +278,42 @@ class TypeDecoder {
   }
 
   TypeSpec readTypeOption() {
-    DataType type = DataType.valueOf(readShort());
-    Object keyType = null;
-    TypeSpec spec = null;
+    DataType type = ByteValuesForDataType.fromByteValue(readShort());
+    Object? keyType = null;
+    TypeSpec? spec = null;
 
     // Collection types and custom type have additional
     // option parameters which we need to parse
     switch (type) {
-      case DataType.CUSTOM:
+      case DataType.custom:
         // Custom type java FQ class
         spec = TypeSpec(type)..customTypeClass = readString(SizeType.SHORT);
         break;
-      case DataType.LIST:
-      case DataType.SET:
+      case DataType.list:
+      case DataType.set:
         // Value is an option representing the list item type
         spec = TypeSpec(type,
-            keySubType: keyType, valueSubType: readTypeOption());
+            keySubType: keyType as TypeSpec?, valueSubType: readTypeOption());
         break;
-      case DataType.MAP:
+      case DataType.map:
         // We have two option values, one for the map key type and one for the value type
         spec = TypeSpec(type,
             keySubType: readTypeOption(), valueSubType: readTypeOption());
         break;
-      case DataType.UDT:
+      case DataType.udt:
         spec = TypeSpec(type);
         spec.keyspace = readString(SizeType.SHORT);
         spec.udtName = readString(SizeType.SHORT);
         // numFields <String, TypeOption> tuples follow
         int numFields = readShort();
         for (int fieldIndex = 0; fieldIndex < numFields; fieldIndex++) {
-          spec.udtFields[readString(SizeType.SHORT)] = readTypeOption();
+          final String? fieldName = readString(SizeType.SHORT);
+          if (fieldName != null) {
+            spec.udtFields[fieldName] = readTypeOption();
+          }
         }
         break;
-      case DataType.TUPLE:
+      case DataType.tuple:
         spec = TypeSpec(type);
         // numFields <TypeOption> records follow
         int numFields = readShort();
@@ -331,7 +328,7 @@ class TypeDecoder {
     return spec;
   }
 
-  Object readTypedValue(TypeSpec typeSpec, {SizeType size}) {
+  Object? readTypedValue(TypeSpec? typeSpec, {SizeType? size}) {
     // Read typed value length in bytes
     int lenInBytes = readLength(size);
 
@@ -342,52 +339,54 @@ class TypeDecoder {
       return null;
     }
 
-    switch (typeSpec.valueType) {
-      case DataType.ASCII:
+    switch (typeSpec!.valueType) {
+      case DataType.ascii:
         return readAsciiString(size, lenInBytes);
-      case DataType.TEXT:
-      case DataType.VARCHAR:
+      case DataType.text:
+      case DataType.varchar:
         return readString(size, lenInBytes);
-      case DataType.UUID:
-      case DataType.TIMEUUID:
-        return Uuid.fromBytes(readBytes(size, lenInBytes));
-      case DataType.CUSTOM:
+      case DataType.uuid:
+      case DataType.timeuuid:
+        return Uuid.fromBytes(readBytes(size, lenInBytes)!);
+      case DataType.custom:
         // If a codec has been specified for this type, use that; otherwise return the
         // serialized data as a Uint8 list
-        Codec typeCodec = getCodec(typeSpec.customTypeClass);
+        Codec? typeCodec = getCodec(typeSpec.customTypeClass);
         return typeCodec != null
             ? typeCodec.decode(readBytes(size, lenInBytes))
             : readBytes(size, lenInBytes);
-      case DataType.BLOB:
+      case DataType.blob:
         return readBytes(size, lenInBytes);
-      case DataType.INT:
+      case DataType.int:
         return readInt();
-      case DataType.BIGINT:
-      case DataType.COUNTER:
+      case DataType.bigint:
+      case DataType.counter:
         return readLong();
-      case DataType.TIMESTAMP:
+      case DataType.smallint:
+        return SmallInt(readInt16());
+      case DataType.tinyint:
+        return TinyInt(readInt8());
+      case DataType.timestamp:
         return DateTime.fromMillisecondsSinceEpoch(readLong());
-      case DataType.BOOLEAN:
+      case DataType.boolean:
         return readByte() != 0;
-      case DataType.FLOAT:
+      case DataType.float:
         return readFloat();
-      case DataType.DOUBLE:
+      case DataType.double:
         return readDouble();
-      case DataType.INET:
+      case DataType.inet:
         // INET can be either 4 (ipv4) or 16 (ipv6) bytes long
         if (lenInBytes == 4) {
-          Uint8List buf = readBytes(SizeType.BYTE, lenInBytes);
+          Uint8List buf = readBytes(SizeType.BYTE, lenInBytes)!;
           return InternetAddress(buf.join("."));
         } else if (lenInBytes == 16) {
           return InternetAddress(
               List<String>.generate(8, (_) => readShort().toRadixString(16))
                   .join(":"));
         } else {
-          throw Exception(
-              "Could not decode INET type of length ${lenInBytes}");
+          throw Exception("Could not decode INET type of length ${lenInBytes}");
         }
-        break;
-      case DataType.LIST:
+      case DataType.list:
         SizeType itemSize = protocolVersion == ProtocolVersion.V2
             ? SizeType.SHORT
             : SizeType.LONG;
@@ -398,7 +397,7 @@ class TypeDecoder {
         // Each record is a <short(V2)>/<int(V3)> length followed by M bytes.
         return List.generate(
             len, (_) => readTypedValue(typeSpec.valueSubType, size: itemSize));
-      case DataType.SET:
+      case DataType.set:
         SizeType itemSize = protocolVersion == ProtocolVersion.V2
             ? SizeType.SHORT
             : SizeType.LONG;
@@ -412,7 +411,7 @@ class TypeDecoder {
           set.add(readTypedValue(typeSpec.valueSubType, size: itemSize));
         }
         return set;
-      case DataType.MAP:
+      case DataType.map:
         SizeType itemSize = protocolVersion == ProtocolVersion.V2
             ? SizeType.SHORT
             : SizeType.LONG;
@@ -426,16 +425,16 @@ class TypeDecoder {
               readTypedValue(typeSpec.valueSubType, size: itemSize);
         }
         return map;
-      case DataType.DECIMAL:
+      case DataType.decimal:
         return readDecimal(size, lenInBytes);
-      case DataType.VARINT:
+      case DataType.varint:
         return readVarInt(size, lenInBytes);
-      case DataType.UDT:
+      case DataType.udt:
         Map udt = LinkedHashMap();
-        typeSpec.udtFields.forEach((String name, TypeSpec udtSpec) =>
+        typeSpec.udtFields.forEach((String? name, TypeSpec udtSpec) =>
             udt[name] = readTypedValue(udtSpec, size: size));
         return udt;
-      case DataType.TUPLE:
+      case DataType.tuple:
         Tuple tuple = Tuple.fromIterable(List.generate(
             typeSpec.tupleFields.length,
             (int fieldIndex) =>

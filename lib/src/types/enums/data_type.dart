@@ -1,175 +1,138 @@
 part of dart_cassandra_cql.types;
 
-class DataType extends Enum<int> {
+enum DataType {
+  custom,
+  ascii,
+  bigint,
+  blob,
+  boolean,
+  counter,
+  decimal,
+  double,
+  float,
+  int,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+  varint,
+  timeuuid,
+  inet,
+  tinyint,
+  list,
+  map,
+  set,
+  udt,
+  tuple,
+  smallint,
+}
+
+extension ByteValuesForDataType on DataType {
   static final RegExp _UUID_REGEX = RegExp(
       r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
       caseSensitive: false);
 
-  static const DataType CUSTOM = const DataType._(0x0000);
-  static const DataType ASCII = const DataType._(0x0001);
-  static const DataType BIGINT = const DataType._(0x0002);
-  static const DataType BLOB = const DataType._(0x0003);
-  static const DataType BOOLEAN = const DataType._(0x0004);
-  static const DataType COUNTER = const DataType._(0x0005);
-  static const DataType DECIMAL = const DataType._(0x0006);
-  static const DataType DOUBLE = const DataType._(0x0007);
-  static const DataType FLOAT = const DataType._(0x0008);
-  static const DataType INT = const DataType._(0x0009);
-  static const DataType TEXT = const DataType._(0x000a);
-  static const DataType TIMESTAMP = const DataType._(0x000b);
-  static const DataType UUID = const DataType._(0x000c);
-  static const DataType VARCHAR = const DataType._(0x000d);
-  static const DataType VARINT = const DataType._(0x000e);
-  static const DataType TIMEUUID = const DataType._(0x000f);
-  static const DataType INET = const DataType._(0x0010);
-  static const DataType LIST = const DataType._(0x0020);
-  static const DataType MAP = const DataType._(0x0021);
-  static const DataType SET = const DataType._(0x0022);
+  static final Map<DataType, int> _byteMap = <DataType, int>{
+    DataType.custom: 0x00,
+    DataType.ascii: 0x01,
+    DataType.bigint: 0x02,
+    DataType.blob: 0x03,
+    DataType.boolean: 0x04,
+    DataType.counter: 0x05,
+    DataType.decimal: 0x06,
+    DataType.double: 0x07,
+    DataType.float: 0x08,
+    DataType.int: 0x09,
+    DataType.text: 0x0a,
+    DataType.timestamp: 0x0b,
+    DataType.uuid: 0x0c,
+    DataType.varchar: 0x0d,
+    DataType.varint: 0x0e,
+    DataType.timeuuid: 0x0f,
+    DataType.inet: 0x10,
+    DataType.smallint: 0x13,
+    DataType.tinyint: 0x14,
+    DataType.list: 0x20,
+    DataType.map: 0x21,
+    DataType.set: 0x22,
+    DataType.udt: 0x30,
+    DataType.tuple: 0x31,
+  };
 
-  // V3 protocol (user defined types & tuples)
-  static const DataType UDT = const DataType._(0x0030);
-  static const DataType TUPLE = const DataType._(0x0031);
+  static final Map<int, DataType> _inverseMap =
+      _byteMap.map((key, value) => MapEntry<int, DataType>(value, key));
 
-  const DataType._(int value) : super(value);
-
-  String toString() => "0x${value.toRadixString(16)}";
-
-  get isCollection => this == LIST || this == SET || this == MAP;
-
-  static DataType valueOf(int value) {
-    DataType fromValue = value == CUSTOM._value
-        ? CUSTOM
-        : value == ASCII._value
-            ? ASCII
-            : value == BIGINT._value
-                ? BIGINT
-                : value == BLOB._value
-                    ? BLOB
-                    : value == BOOLEAN._value
-                        ? BOOLEAN
-                        : value == COUNTER._value
-                            ? COUNTER
-                            : value == DECIMAL._value
-                                ? DECIMAL
-                                : value == DOUBLE._value
-                                    ? DOUBLE
-                                    : value == FLOAT._value
-                                        ? FLOAT
-                                        : value == INT._value
-                                            ? INT
-                                            : value == TEXT._value
-                                                ? TEXT
-                                                : value == TIMESTAMP._value
-                                                    ? TIMESTAMP
-                                                    : value == UUID._value
-                                                        ? UUID
-                                                        : value == VARCHAR._value
-                                                            ? VARCHAR
-                                                            : value ==
-                                                                    VARINT
-                                                                        ._value
-                                                                ? VARINT
-                                                                : value ==
-                                                                        TIMEUUID
-                                                                            ._value
-                                                                    ? TIMEUUID
-                                                                    : value ==
-                                                                            INET._value
-                                                                        ? INET
-                                                                        : value ==
-                                                                                LIST._value
-                                                                            ? LIST
-                                                                            : value == MAP._value
-                                                                                ? MAP
-                                                                                : value == SET._value ? SET : value == UDT._value ? UDT : value == TUPLE._value ? TUPLE : null;
-
-    if (fromValue == null) {
-      throw ArgumentError(
-          "Invalid datatype value 0x${value.toRadixString(16)}");
+  bool get isCollection {
+    switch (this) {
+      case DataType.list:
+      case DataType.set:
+      case DataType.map:
+        return true;
+      default:
+        return false;
     }
-    return fromValue;
   }
 
-  static String nameOf(DataType value) {
-    String name = value == CUSTOM
-        ? "CUSTOM"
-        : value == ASCII
-            ? "ASCII"
-            : value == BIGINT
-                ? "BIGINT"
-                : value == BLOB
-                    ? "BLOB"
-                    : value == BOOLEAN
-                        ? "BOOLEAN"
-                        : value == COUNTER
-                            ? "COUNTER"
-                            : value == DECIMAL
-                                ? "DECIMAL"
-                                : value == DOUBLE
-                                    ? "DOUBLE"
-                                    : value == FLOAT
-                                        ? "FLOAT"
-                                        : value == INT
-                                            ? "INT"
-                                            : value == TEXT
-                                                ? "TEXT"
-                                                : value == TIMESTAMP
-                                                    ? "TIMESTAMP"
-                                                    : value == UUID
-                                                        ? "UUID"
-                                                        : value == VARCHAR
-                                                            ? "VARCHAR"
-                                                            : value == VARINT
-                                                                ? "VARINT"
-                                                                : value ==
-                                                                        TIMEUUID
-                                                                    ? "TIMEUUID"
-                                                                    : value ==
-                                                                            INET
-                                                                        ? "INET"
-                                                                        : value ==
-                                                                                LIST
-                                                                            ? "LIST"
-                                                                            : value == MAP
-                                                                                ? "MAP"
-                                                                                : value == SET ? "SET" : value == UDT ? "UDT" : value == TUPLE ? "TUPLE" : null;
-    return name;
+  int toByteValue() {
+    if (_byteMap.containsKey(this) && _byteMap[this] != null) {
+      return _byteMap[this]!;
+    } else {
+      throw ArgumentError('Invalid datatype $this');
+    }
   }
 
-  /**
-   * Attempt to guess the correct [DataType] for the given. Returns
-   * the guessed [DataType] or null if type cannot be guessed
-   */
+  // @note This is just to be backwards compatible with old call. May replace with call
+  // to toByteValue() instead of .value in the future. Or may prefer access through
+  // .value. TBD.
+  int get value => toByteValue();
 
-  static DataType guessForValue(Object value) {
+  static DataType fromByteValue(int value) {
+    if (_inverseMap.containsKey(value) && _inverseMap[value] != null) {
+      return _inverseMap[value]!;
+    } else {
+      throw ArgumentError('Invalid datatype from bytes $value');
+    }
+  }
+
+  /// Attempt to guess the correct [DataType] for the given. Returns
+  /// the guessed [DataType] or null if type cannot be guessed
+  static DataType? guessForValue(Object value) {
     if (value is bool) {
-      return BOOLEAN;
+      return DataType.boolean;
     } else if (value is BigInt) {
-      return VARINT;
+      return DataType.varint;
     } else if (value is int) {
       int v = value;
-      return v.bitLength <= 32 ? INT : v.bitLength <= 64 ? BIGINT : VARINT;
+      return v.bitLength <= 32
+          ? DataType.int
+          : v.bitLength <= 64
+              ? DataType.bigint
+              : DataType.varint;
     } else if (value is num) {
-      return DOUBLE;
+      return DataType.double;
+    } else if (value is TinyInt) {
+      return DataType.tinyint;
+    } else if (value is SmallInt) {
+      return DataType.smallint;
     } else if (value is Uuid ||
         (value is String && _UUID_REGEX.hasMatch(value))) {
-      return UUID;
+      return DataType.uuid;
     } else if (value is String) {
-      return VARCHAR;
+      return DataType.varchar;
     } else if (value is ByteData || value is TypedData) {
-      return BLOB;
+      return DataType.blob;
     } else if (value is DateTime) {
-      return TIMESTAMP;
+      return DataType.timestamp;
     } else if (value is InternetAddress) {
-      return INET;
+      return DataType.inet;
     } else if (value is Tuple) {
-      return TUPLE;
+      return DataType.tuple;
     } else if (value is Set) {
-      return SET;
+      return DataType.set;
     } else if (value is List) {
-      return LIST;
+      return DataType.list;
     } else if (value is Map) {
-      return MAP;
+      return DataType.map;
     }
 
     return null;

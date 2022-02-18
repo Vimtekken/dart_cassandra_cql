@@ -4,159 +4,159 @@ import "dart:typed_data";
 import "dart:io";
 import "package:test/test.dart";
 
-import '../../lib/src/types.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
 import 'mocks/mocks.dart' as mock;
-import "mocks/custom.dart" as custom;
+import 'mocks/custom.dart' as custom;
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   if (enableLogger) {
     mock.initLogger();
   }
 
   group("Collection type:", () {
     test("isCollection(LIST)", () {
-      expect(DataType.SET.isCollection, isTrue);
+      expect(DataType.set.isCollection, isTrue);
     });
     test("isCollection(SET)", () {
-      expect(DataType.LIST.isCollection, isTrue);
+      expect(DataType.list.isCollection, isTrue);
     });
     test("isCollection(MAP)", () {
-      expect(DataType.MAP.isCollection, isTrue);
+      expect(DataType.map.isCollection, isTrue);
     });
     test("isCollection(TUPLE)", () {
-      expect(DataType.TUPLE.isCollection, isFalse);
+      expect(DataType.tuple.isCollection, isFalse);
     });
   });
 
   group("TypeSpec.toString():", () {
     test("ASCII", () {
-      TypeSpec ts = new TypeSpec(DataType.ASCII);
-      expect(ts.toString(), equals("ASCII"));
+      TypeSpec ts = new TypeSpec(DataType.ascii);
+      expect(ts.toString(), equals("ascii"));
     });
 
     test("CUSTOM", () {
       custom.CustomJson customJson = new custom.CustomJson({});
-      TypeSpec ts = new TypeSpec(DataType.CUSTOM)
+      TypeSpec ts = new TypeSpec(DataType.custom)
         ..customTypeClass = customJson.customTypeClass;
       expect(
           ts.toString(), equals("CustomType<${customJson.customTypeClass}>"));
     });
 
     test("LIST", () {
-      TypeSpec ts = new TypeSpec(DataType.LIST,
-          valueSubType: new TypeSpec(DataType.INET));
-      expect(ts.toString(), equals("List<INET>"));
+      TypeSpec ts = new TypeSpec(DataType.list,
+          valueSubType: new TypeSpec(DataType.inet));
+      expect(ts.toString(), equals("List<inet>"));
     });
 
     test("SET", () {
-      TypeSpec ts = new TypeSpec(DataType.SET,
-          valueSubType: new TypeSpec(DataType.TIMESTAMP));
-      expect(ts.toString(), equals("Set<TIMESTAMP>"));
+      TypeSpec ts = new TypeSpec(DataType.set,
+          valueSubType: new TypeSpec(DataType.timestamp));
+      expect(ts.toString(), equals("Set<timestamp>"));
     });
 
     test("MAP", () {
-      TypeSpec ts = new TypeSpec(DataType.MAP,
-          keySubType: new TypeSpec(DataType.TIMESTAMP),
-          valueSubType: new TypeSpec(DataType.INT));
-      expect(ts.toString(), equals("Map<TIMESTAMP, INT>"));
+      TypeSpec ts = new TypeSpec(DataType.map,
+          keySubType: new TypeSpec(DataType.timestamp),
+          valueSubType: new TypeSpec(DataType.int));
+      expect(ts.toString(), equals("Map<timestamp, int>"));
     });
 
     test("UDT", () {
-      TypeSpec ts = new TypeSpec(DataType.UDT)
+      TypeSpec ts = new TypeSpec(DataType.udt)
         ..keyspace = "test"
         ..udtName = "phone"
         ..udtFields = {
-          "tags": new TypeSpec(DataType.LIST,
-              valueSubType: new TypeSpec(DataType.ASCII))
+          "tags": new TypeSpec(DataType.list,
+              valueSubType: new TypeSpec(DataType.ascii))
         };
-      expect(ts.toString(), equals('{test.phone: {tags: List<ASCII>}}'));
+      expect(ts.toString(), equals('{test.phone: {tags: List<ascii>}}'));
     });
 
     test("TUPLE", () {
-      TypeSpec ts = new TypeSpec(DataType.TUPLE)
+      TypeSpec ts = new TypeSpec(DataType.tuple)
         ..tupleFields = [
-          new TypeSpec(DataType.INT),
-          new TypeSpec(DataType.ASCII),
-          new TypeSpec(DataType.TIMESTAMP)
+          new TypeSpec(DataType.int),
+          new TypeSpec(DataType.ascii),
+          new TypeSpec(DataType.timestamp)
         ];
-      expect(ts.toString(), equals('([INT, ASCII, TIMESTAMP])'));
+      expect(ts.toString(), equals('([int, ascii, timestamp])'));
     });
   });
 
   group("Type guess:", () {
     test("BOOL", () {
-      expect(DataType.guessForValue(true), equals(DataType.BOOLEAN));
-      expect(DataType.guessForValue(false), equals(DataType.BOOLEAN));
+      expect(ByteValuesForDataType.guessForValue(true), equals(DataType.boolean));
+      expect(ByteValuesForDataType.guessForValue(false), equals(DataType.boolean));
     });
 
     test("DOUBLE", () {
-      expect(DataType.guessForValue(3.145), equals(DataType.DOUBLE));
+      expect(ByteValuesForDataType.guessForValue(3.145), equals(DataType.double));
     });
 
     test("INT", () {
-      expect(DataType.guessForValue(3), equals(DataType.INT));
+      expect(ByteValuesForDataType.guessForValue(3), equals(DataType.int));
     });
 
     test("BIGINT", () {
       expect(
-          DataType.guessForValue(9223372036854775807), equals(DataType.BIGINT));
+          ByteValuesForDataType.guessForValue(9223372036854775807), equals(DataType.bigint));
     });
 
     test("VARINT", () {
-      expect(DataType.guessForValue(BigInt.parse('9223372036854775807000000')),
-          equals(DataType.VARINT));
+      expect(ByteValuesForDataType.guessForValue(BigInt.parse('9223372036854775807000000')),
+          equals(DataType.varint));
     });
 
     test("VARCHAR", () {
-      expect(DataType.guessForValue("test123 123"), equals(DataType.VARCHAR));
+      expect(ByteValuesForDataType.guessForValue("test123 123"), equals(DataType.varchar));
     });
 
     test("UUID", () {
-      expect(DataType.guessForValue(new Uuid.simple()), equals(DataType.UUID));
+      expect(ByteValuesForDataType.guessForValue(new Uuid.simple()), equals(DataType.uuid));
 
       expect(
-          DataType.guessForValue(new Uuid.timeBased()), equals(DataType.UUID));
+          ByteValuesForDataType.guessForValue(new Uuid.timeBased()), equals(DataType.uuid));
 
-      expect(DataType.guessForValue(new Uuid.timeBased().toString()),
-          equals(DataType.UUID));
+      expect(ByteValuesForDataType.guessForValue(new Uuid.timeBased().toString()),
+          equals(DataType.uuid));
     });
 
     test("BLOB", () {
-      expect(DataType.guessForValue(new Uint8List.fromList([0xff])),
-          equals(DataType.BLOB));
+      expect(ByteValuesForDataType.guessForValue(new Uint8List.fromList([0xff])),
+          equals(DataType.blob));
     });
 
     test("TIMESTAMP", () {
-      expect(DataType.guessForValue(new DateTime.now()),
-          equals(DataType.TIMESTAMP));
+      expect(ByteValuesForDataType.guessForValue(new DateTime.now()),
+          equals(DataType.timestamp));
     });
 
     test("INET", () {
-      expect(DataType.guessForValue(new InternetAddress("127.0.0.1")),
-          equals(DataType.INET));
+      expect(ByteValuesForDataType.guessForValue(new InternetAddress("127.0.0.1")),
+          equals(DataType.inet));
     });
 
     test("LIST", () {
-      expect(DataType.guessForValue(["test123 123", 1, 2, 3.14]),
-          equals(DataType.LIST));
+      expect(ByteValuesForDataType.guessForValue(["test123 123", 1, 2, 3.14]),
+          equals(DataType.list));
     });
 
     test("SET", () {
-      expect(DataType.guessForValue(new Set.from(["a", "a", "b"])),
-          equals(DataType.SET));
+      expect(ByteValuesForDataType.guessForValue(new Set.from(["a", "a", "b"])),
+          equals(DataType.set));
     });
 
     test("MAP", () {
-      expect(DataType.guessForValue({"foo": "bar"}), equals(DataType.MAP));
+      expect(ByteValuesForDataType.guessForValue({"foo": "bar"}), equals(DataType.map));
     });
 
     test("TUPLE", () {
-      expect(DataType.guessForValue(new Tuple.fromIterable([1, 2, 3])),
-          equals(DataType.TUPLE));
+      expect(ByteValuesForDataType.guessForValue(new Tuple.fromIterable([1, 2, 3])),
+          equals(DataType.tuple));
     });
 
     test("No guess", () {
-      expect(DataType.guessForValue(new SocketException("foo")), isNull);
+      expect(ByteValuesForDataType.guessForValue(new SocketException("foo")), isNull);
     });
   });
 }

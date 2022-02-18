@@ -6,7 +6,8 @@ import "dart:typed_data";
 import "package:test/test.dart";
 import "mocks/mocks.dart" as mock;
 import "mocks/custom.dart" as custom;
-import '../../lib/dart_cassandra_cql.dart' as cql;
+import 'package:dart_cassandra_cql/dart_cassandra_cql.dart' as cql;
+import 'package:dart_cassandra_cql/src/protocol.dart';
 
 main({bool enableLogger: true}) {
   if (enableLogger) {
@@ -26,12 +27,11 @@ main({bool enableLogger: true}) {
   group("Client exceptions:", () {
     test("Empty host list", () {
       expect(() => new cql.Client.fromHostList([]), throwsArgumentError);
-      expect(() => new cql.Client.fromHostList(null), throwsArgumentError);
     });
   });
 
   group("Simple connection pool:", () {
-    cql.Client client;
+    cql.Client? client;
 
     setUp(() async {
       await Future.wait([
@@ -44,7 +44,7 @@ main({bool enableLogger: true}) {
       final cleanupFutures = <Future>[server.shutdown(), server2.shutdown()];
 
       if (client != null) {
-        cleanupFutures.add(client.shutdown(drain: true));
+        cleanupFutures.add(client!.shutdown(drain: true));
         client = null;
       }
 
@@ -61,17 +61,10 @@ main({bool enableLogger: true}) {
                 e.message == "Host list cannot be empty"));
       });
 
-      test("no connection pool exception", () {
-        expect(
-            () => new cql.SimpleConnectionPool.fromHostList(['foo:123'], null),
-            throwsA((e) =>
-                e is ArgumentError &&
-                e.message == "A valid pool configuration is required"));
-      });
-
       test("Client with default pool conf", () {
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"]);
-        expect(client.connectionPool.poolConfig.connectionsPerHost, equals(1));
+        expect(
+            client!.connectionPool.poolConfig!.connectionsPerHost, equals(1));
       });
 
       test("Fail to connect to any pool host", () {
@@ -85,7 +78,7 @@ main({bool enableLogger: true}) {
           expect(e, new isInstanceOf<cql.NoHealthyConnectionsException>());
         }
 
-        client.connectionPool.connect().catchError(expectAsync(handleError));
+        client!.connectionPool.connect().catchError(expectAsync(handleError));
       });
 
       test("Connection to at least one node in the pool", () async {
@@ -97,7 +90,7 @@ main({bool enableLogger: true}) {
                 reconnectWaitTime: new Duration(milliseconds: 1),
                 maxConnectionAttempts: 5));
 
-        await client.connectionPool.connect();
+        await client!.connectionPool.connect();
       });
     });
 
@@ -130,7 +123,7 @@ main({bool enableLogger: true}) {
                   "Server requested 'org.apache.cassandra.auth.PasswordAuthenticator' authenticator but no authenticator specified"));
         }
 
-        client.connectionPool.connect().catchError(expectAsync(handleError));
+        client!.connectionPool.connect().catchError(expectAsync(handleError));
       });
 
       test("Different authenticator exception", () {
@@ -140,17 +133,17 @@ main({bool enableLogger: true}) {
             poolConfig: new cql.PoolConfiguration(
                 autoDiscoverNodes: false,
                 protocolVersion: cql.ProtocolVersion.V3,
-                authenticator: new mock.MockAuthenticator()));
+                authenticator: mock.MockAuthenticator()));
 
         void handleError(e) {
           expect(e, new isInstanceOf<cql.AuthenticationException>());
           expect(
               e.message,
               equals(
-                  "Server requested 'org.apache.cassandra.auth.PasswordAuthenticator' authenticator but a '${client.connectionPool.poolConfig.authenticator.authenticatorClass}' authenticator was specified instead"));
+                  "Server requested 'org.apache.cassandra.auth.PasswordAuthenticator' authenticator but a '${client!.connectionPool.poolConfig!.authenticator!.authenticatorClass}' authenticator was specified instead"));
         }
 
-        client.connectionPool.connect().catchError(expectAsync(handleError));
+        client!.connectionPool.connect().catchError(expectAsync(handleError));
       });
 
       test("User/pass mismatch exception", () {
@@ -168,7 +161,7 @@ main({bool enableLogger: true}) {
           expect(e.message, equals("Username and/or password are incorrect"));
         }
 
-        client.connectionPool.connect().catchError(expectAsync(handleError));
+        client!.connectionPool.connect().catchError(expectAsync(handleError));
       });
 
       test("Auth success (multi challenge-response)", () {
@@ -189,9 +182,9 @@ main({bool enableLogger: true}) {
 
         void handleSuccess(_) {}
 
-        client
-            .query(new cql.Query("SELECT * FROM test.test_type"))
-            .then(expectAsync(handleSuccess));
+        client!.query(new cql.Query("SELECT * FROM test.test_type")).then(
+            expectAsync(handleSuccess) as FutureOr<void> Function(
+                Iterable<Map<String, Object?>>?));
       });
     });
 
@@ -208,7 +201,7 @@ main({bool enableLogger: true}) {
           expect(e.message, equals("unconfigured columnfamily foo"));
         }
 
-        client
+        client!
             .execute(new cql.Query("SELECT * from test.foo",
                 consistency: cql.Consistency.LOCAL_ONE))
             .catchError(expectAsync(handleError));
@@ -229,22 +222,22 @@ main({bool enableLogger: true}) {
               equals("test"));
         }
 
-        client
-            .execute(new cql.Query("USE test"))
-            .then(expectAsync(handleResult));
+        client!.execute(new cql.Query("USE test")).then(
+            expectAsync(handleResult) as FutureOr<void> Function(
+                ResultMessage?));
       });
 
       test("query and process raw RowsResultMessage", () {
         server.setReplayList(["select_v2.dump"]);
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"],
             poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
-        expect(client.execute(new cql.Query("SELECT * from test.type_test")),
+        expect(client!.execute(new cql.Query("SELECT * from test.type_test")),
             completion((cql.ResultMessage message) {
           expect(message, new isInstanceOf<cql.RowsResultMessage>());
           cql.RowsResultMessage res = message as cql.RowsResultMessage;
-          expect(res.rows.length, equals(1));
-          Map<String, Object> row = res.rows.first;
-          Map<String, Object> expectedValues = {
+          expect(res.rows!.length, equals(1));
+          Map<String, Object?> row = res.rows.first;
+          Map<String, Object?> expectedValues = {
             "ascii_type": "text4",
             "bigint_type": 9223372036854775807,
             "bool_type": true,
@@ -256,9 +249,10 @@ main({bool enableLogger: true}) {
             "text_type": "This is a long UTF8 κείμενο",
             "uuid_type": new cql.Uuid("550e8400-e29b-41d4-a716-446655440000"),
             "varchar_type": "Arbitary long text goes here",
-            "varint_type": BigInt.parse('-3123091212904812093120938120938120312890'),
+            "varint_type":
+                BigInt.parse('-3123091212904812093120938120938120312890'),
           };
-          expectedValues.forEach((String fieldName, Object fieldValue) {
+          expectedValues.forEach((String? fieldName, Object? fieldValue) {
             expect(row[fieldName], equals(fieldValue));
           });
           return true;
@@ -270,7 +264,7 @@ main({bool enableLogger: true}) {
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"],
             poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
         expect(
-            client.execute(
+            client!.execute(
                 new cql.Query("ALTER TABLE test.type_test ADD new_field int")),
             completion((cql.ResultMessage message) {
           expect(message, new isInstanceOf<cql.SchemaChangeResultMessage>());
@@ -307,18 +301,19 @@ main({bool enableLogger: true}) {
               "${SERVER_HOST}:${SERVER_PORT}"
             ], poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-            void onResult(Iterable<Map<String, Object>> rows) {
+            void onResult(Iterable<Map<String, Object?>> rows) {
               expect(rows.length, equals(1));
 
-              Map<String, Object> row = rows.first;
+              Map<String, Object?> row = rows.first;
               expect(row.length, equals(2));
               expect(row["login"], equals("test"));
               expect(row["custom"], new isInstanceOf<Uint8List>());
             }
 
-            client
+            client!
                 .query(new cql.Query("SELECT * from test.custom_types"))
-                .then(expectAsync(onResult));
+                .then(expectAsync(onResult) as FutureOr<void> Function(
+                    Iterable<Map<String, Object?>>?));
           });
 
           test("with custom type handler", () {
@@ -331,23 +326,24 @@ main({bool enableLogger: true}) {
               "${SERVER_HOST}:${SERVER_PORT}"
             ], poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-            void onResult(Iterable<Map<String, Object>> rows) {
+            void onResult(Iterable<Map<String, Object?>> rows) {
               expect(rows.length, equals(1));
 
-              Map<String, Object> row = rows.first;
+              Map<String, Object?> row = rows.first;
               expect(row.length, equals(2));
               expect(row["login"], equals("test"));
               expect(row["custom"], new isInstanceOf<custom.CustomJson>());
 
               custom.CustomJson customJson =
                   (row["custom"] as custom.CustomJson);
-              expect(customJson.payload.containsKey("foo"), isTrue);
-              expect(customJson.payload["foo"], equals("bar"));
+              expect(customJson.payload!.containsKey("foo"), isTrue);
+              expect(customJson.payload!["foo"], equals("bar"));
             }
 
-            client
+            client!
                 .query(new cql.Query("SELECT * from test.custom_types"))
-                .then(expectAsync(onResult));
+                .then(expectAsync(onResult) as FutureOr<void> Function(
+                    Iterable<Map<String, Object?>>?));
           });
         });
 
@@ -358,15 +354,15 @@ main({bool enableLogger: true}) {
               poolConfig: new cql.PoolConfiguration(
                   autoDiscoverNodes: false,
                   protocolVersion: cql.ProtocolVersion.V3));
-          expect(client.query(new cql.Query("SELECT * from test.tuple_test")),
-              completion((Iterable<Map<String, Object>> rows) {
+          expect(client!.query(new cql.Query("SELECT * from test.tuple_test")),
+              completion((Iterable<Map<String, Object?>> rows) {
             expect(rows.length, equals(1));
-            Map<String, Object> row = rows.first;
-            Map<String, Object> expectedValues = {
+            Map<String, Object?> row = rows.first;
+            Map<String, Object?> expectedValues = {
               "the_key": 1,
               "the_tuple": new cql.Tuple.fromIterable([10, "foo", true])
             };
-            expectedValues.forEach((String fieldName, Object fieldValue) {
+            expectedValues.forEach((String? fieldName, Object? fieldValue) {
               expect(row[fieldName], equals(fieldValue));
             });
             return true;
@@ -385,7 +381,7 @@ main({bool enableLogger: true}) {
             expect(e.toString(), equals('CassandraException: ${e.message}'));
           }
 
-          client
+          client!
               .query(new cql.Query("SELECT * from test.foo"))
               .catchError(expectAsync(handleError));
         });
@@ -395,11 +391,11 @@ main({bool enableLogger: true}) {
           client = new cql.Client.fromHostList(
               ["${SERVER_HOST}:${SERVER_PORT}"],
               poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
-          expect(client.query(new cql.Query("SELECT * from test.type_test")),
-              completion((Iterable<Map<String, Object>> rows) {
+          expect(client!.query(new cql.Query("SELECT * from test.type_test")),
+              completion((Iterable<Map<String, Object?>> rows) {
             expect(rows.length, equals(1));
-            Map<String, Object> row = rows.first;
-            Map<String, Object> expectedValues = {
+            Map<String, Object?> row = rows.first;
+            Map<String, Object?> expectedValues = {
               "ascii_type": "text4",
               "bigint_type": 9223372036854775807,
               "bool_type": true,
@@ -411,9 +407,10 @@ main({bool enableLogger: true}) {
               "text_type": "This is a long UTF8 κείμενο",
               "uuid_type": new cql.Uuid("550e8400-e29b-41d4-a716-446655440000"),
               "varchar_type": "Arbitary long text goes here",
-              "varint_type": BigInt.parse('-3123091212904812093120938120938120312890'),
+              "varint_type":
+                  BigInt.parse('-3123091212904812093120938120938120312890'),
             };
-            expectedValues.forEach((String fieldName, Object fieldValue) {
+            expectedValues.forEach((String? fieldName, Object? fieldValue) {
               expect(row[fieldName], equals(fieldValue));
             });
             return true;
@@ -422,27 +419,25 @@ main({bool enableLogger: true}) {
       });
 
       group("INSERT:", () {
-        test("batch insert", () {
+        test("batch insert", () async {
           server.setReplayList(["void_result_v2.dump"]);
           client = new cql.Client.fromHostList(
               ["${SERVER_HOST}:${SERVER_PORT}"],
               poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
-
-          void handleResult(cql.ResultMessage message) {
-            expect(message, new isInstanceOf<cql.VoidResultMessage>());
+          void handleResult(cql.ResultMessage? message) {
+            expect(message, isA<cql.VoidResultMessage>());
           }
 
           String query =
               "INSERT INTO page_view_counts (url_name, page_name, counter_value) VALUES (?, ?, ?)";
-          client
-              .execute(new cql.BatchQuery()
-                ..add(new cql.Query(query,
-                    bindings: ["http://www.test.com", "front_page", 1]))
-                ..add(new cql.Query(query,
-                    bindings: ["http://www.test.com", "login_page", 2]))
-                ..add(new cql.Query(query,
-                    bindings: ["http://www.test.com", "main_page", 3])))
-              .then(expectAsync(handleResult));
+          var result = await client!.execute(new cql.BatchQuery()
+            ..add(new cql.Query(query,
+                bindings: ["http://www.test.com", "front_page", 1]))
+            ..add(new cql.Query(query,
+                bindings: ["http://www.test.com", "login_page", 2]))
+            ..add(new cql.Query(query,
+                bindings: ["http://www.test.com", "main_page", 3])));
+          handleResult(result);
         });
 
         test("batch insert with serial consistency (V3)", () {
@@ -459,7 +454,7 @@ main({bool enableLogger: true}) {
 
           String query =
               "INSERT INTO page_view_counts (url_name, page_name, counter_value) VALUES (?, ?, ?)";
-          client
+          client!
               .execute(new cql.BatchQuery()
                 ..serialConsistency = cql.Consistency.LOCAL_SERIAL
                 ..add(new cql.Query(query,
@@ -468,7 +463,8 @@ main({bool enableLogger: true}) {
                     bindings: ["http://www.test.com", "login_page", 2]))
                 ..add(new cql.Query(query,
                     bindings: ["http://www.test.com", "main_page", 3])))
-              .then(expectAsync(handleResult));
+              .then(expectAsync(handleResult) as FutureOr<void> Function(
+                  ResultMessage?));
         });
       });
     });
@@ -483,12 +479,13 @@ main({bool enableLogger: true}) {
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"],
             poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-        void streamCallback(Map<String, Object> row) {}
+        void streamCallback(Map<String, Object?> row) {}
 
-        client
+        client!
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
-            .listen(expectAsync(streamCallback, count: 10, max: 10));
+            .listen(expectAsync(streamCallback, count: 10, max: 10) as void
+                Function(Map<String, Object?>)?);
       });
 
       test("process streamed rows (preferBiggerTcpPackets)", () {
@@ -501,12 +498,13 @@ main({bool enableLogger: true}) {
             poolConfig: new cql.PoolConfiguration(
                 autoDiscoverNodes: false, preferBiggerTcpPackets: true));
 
-        void streamCallback(Map<String, Object> row) {}
+        void streamCallback(Map<String, Object?> row) {}
 
-        client
+        client!
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
-            .listen(expectAsync(streamCallback, count: 10, max: 10));
+            .listen(expectAsync(streamCallback, count: 10, max: 10) as void
+                Function(Map<String, Object?>)?);
       });
 
       test("pause/resume", () {
@@ -518,10 +516,10 @@ main({bool enableLogger: true}) {
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"],
             poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-        StreamSubscription streamSubscription;
+        late StreamSubscription streamSubscription;
         int rowCount = 0;
 
-        void streamCallback(Map<String, Object> row) {
+        void streamCallback(Map<String, Object?> row) {
           rowCount++;
           if (rowCount == 5) {
             streamSubscription.pause();
@@ -530,10 +528,11 @@ main({bool enableLogger: true}) {
           }
         }
 
-        streamSubscription = client
+        streamSubscription = client!
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
-            .listen(expectAsync(streamCallback, count: 10, max: 10));
+            .listen(expectAsync(streamCallback, count: 10, max: 10) as void
+                Function(Map<String, Object?>)?);
       });
 
       test("close", () {
@@ -545,20 +544,21 @@ main({bool enableLogger: true}) {
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"],
             poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-        StreamSubscription streamSubscription;
+        late StreamSubscription streamSubscription;
         int rowCount = 0;
 
-        void streamCallback(Map<String, Object> row) {
+        void streamCallback(Map<String, Object?> row) {
           rowCount++;
           if (rowCount == 5) {
             streamSubscription.cancel();
           }
         }
 
-        streamSubscription = client
+        streamSubscription = client!
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
-            .listen(expectAsync(streamCallback, count: 5, max: 5));
+            .listen(expectAsync(streamCallback, count: 5, max: 5) as void
+                Function(Map<String, Object?>)?);
       });
 
       test("connection lost", () {
@@ -570,11 +570,11 @@ main({bool enableLogger: true}) {
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"],
             poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-        StreamSubscription subscription;
+        late StreamSubscription subscription;
 
         bool firstInvocation = true;
 
-        void streamCallback(Map<String, Object> row) {
+        void streamCallback(Map<String, Object?> row) {
           if (firstInvocation) {
             firstInvocation = false;
             subscription.pause();
@@ -585,7 +585,7 @@ main({bool enableLogger: true}) {
           }
         }
 
-        subscription = client
+        subscription = client!
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
             .listen(streamCallback, onError: expectAsync((e) {
@@ -606,17 +606,19 @@ main({bool enableLogger: true}) {
 
         bool firstRun = true;
 
-        void streamCallback(Map<String, Object> row) {
+        void streamCallback(Map<String, Object?> row) {
           if (firstRun) {
             firstRun = false;
             server.disconnectClient(0);
           }
         }
 
-        client
+        client!
             .stream(new cql.Query("SELECT * FROM test.page_view_counts"),
                 pageSize: 4)
-            .listen(expectAsync(streamCallback, count: 10, max: 10),
+            .listen(
+                expectAsync(streamCallback, count: 10, max: 10) as void
+                    Function(Map<String, Object?>)?,
                 onError: (e) => print(e));
       });
     });
@@ -627,8 +629,7 @@ main({bool enableLogger: true}) {
         client = new cql.Client.fromHostList(["${SERVER_HOST}:${SERVER_PORT}"],
             poolConfig: new cql.PoolConfiguration(autoDiscoverNodes: false));
 
-        cql.Query query = new cql.Query(
-            """
+        cql.Query query = new cql.Query("""
 INSERT INTO test.type_test (
 	ascii_type, bigint_type, decimal_type, bool_type,
 	double_type, float_type, inet_type, int_type, list_type, map_type,
@@ -639,9 +640,7 @@ INSERT INTO test.type_test (
 	:double_type, :float_type, :inet_type, :int_type, :list_type, :map_type,
 	:set_type, :text_type, :timestamp_type, :uuid_type, :timeuuid_type,
 	:varchar_type, :varint_type, :blob_type
-)""",
-            consistency: cql.Consistency.ONE,
-            prepared: true);
+)""", consistency: cql.Consistency.ONE, prepared: true);
 
         query.bindings = {
           "ascii_type": "123",
@@ -660,7 +659,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -678,12 +677,14 @@ INSERT INTO test.type_test (
         };
 
         void done(cql.VoidResultMessage msg) {}
-        client.execute(query).then(expectAsync(done));
+        client!
+            .execute(query)
+            .then(expectAsync(done) as FutureOr<void> Function(ResultMessage?));
       });
 
       test(
           "prepare and execute query; fallback to other connection on same host (V2)",
-          () {
+          () async {
         server.setReplayList([
           "prepare_v2.dump", "void_result_v2.dump",
           "void_result_v2.dump" // 2nd attempt
@@ -692,8 +693,7 @@ INSERT INTO test.type_test (
             poolConfig: new cql.PoolConfiguration(
                 autoDiscoverNodes: false, connectionsPerHost: 2));
 
-        cql.Query query = new cql.Query(
-            """
+        cql.Query query = new cql.Query("""
 INSERT INTO test.type_test (
 	ascii_type, bigint_type, decimal_type, bool_type,
 	double_type, float_type, inet_type, int_type, list_type, map_type,
@@ -704,9 +704,7 @@ INSERT INTO test.type_test (
 	:double_type, :float_type, :inet_type, :int_type, :list_type, :map_type,
 	:set_type, :text_type, :timestamp_type, :uuid_type, :timeuuid_type,
 	:varchar_type, :varint_type, :blob_type
-)""",
-            consistency: cql.Consistency.ONE,
-            prepared: true);
+)""", consistency: cql.Consistency.ONE, prepared: true);
 
         query.bindings = {
           "ascii_type": "123",
@@ -725,7 +723,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -742,17 +740,11 @@ INSERT INTO test.type_test (
           ])
         };
 
-        Function done = expectAsync((_) {});
+        await client!.execute(query);
 
-        client.execute(query).then((_) {
-          // Kill 1st connection so we run the next prepared statement attempt
-          // on the second connection
-          server.disconnectClient(0);
+        server.disconnectClient(0);
 
-          // 2nd statement should reuse the prepared statement data
-          // on the 2nd connection to the same host
-          client.execute(query).then(done).catchError(print);
-        });
+        await client!.execute(query);
       });
 
       test(
@@ -765,8 +757,7 @@ INSERT INTO test.type_test (
             poolConfig: new cql.PoolConfiguration(
                 autoDiscoverNodes: false, connectionsPerHost: 2));
 
-        cql.Query query = new cql.Query(
-            """
+        cql.Query query = new cql.Query("""
 INSERT INTO test.type_test (
 	ascii_type, bigint_type, decimal_type, bool_type,
 	double_type, float_type, inet_type, int_type, list_type, map_type,
@@ -777,9 +768,7 @@ INSERT INTO test.type_test (
 	:double_type, :float_type, :inet_type, :int_type, :list_type, :map_type,
 	:set_type, :text_type, :timestamp_type, :uuid_type, :timeuuid_type,
 	:varchar_type, :varint_type, :blob_type
-)""",
-            consistency: cql.Consistency.ONE,
-            prepared: true);
+)""", consistency: cql.Consistency.ONE, prepared: true);
 
         query.bindings = {
           "ascii_type": "123",
@@ -798,7 +787,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -828,12 +817,12 @@ INSERT INTO test.type_test (
           return new Future.value();
         }
 
-        client
+        client!
             .execute(query)
-            .then((x) => done(x))
+            .then((x) => done(x as VoidResultMessage))
             // 2nd statement should trigger a prepare on server2
-            .then((_) => client.execute(query))
-            .then(expectAsync(done));
+            .then((_) => client!.execute(query))
+            .then(expectAsync(done) as FutureOr<void> Function(ResultMessage?));
       });
 
       test(
@@ -844,8 +833,7 @@ INSERT INTO test.type_test (
             poolConfig: new cql.PoolConfiguration(
                 autoDiscoverNodes: false, connectionsPerHost: 2));
 
-        cql.Query query = new cql.Query(
-            """
+        cql.Query query = new cql.Query("""
 INSERT INTO test.type_test (
 	ascii_type, bigint_type, decimal_type, bool_type,
 	double_type, float_type, inet_type, int_type, list_type, map_type,
@@ -878,7 +866,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -899,10 +887,10 @@ INSERT INTO test.type_test (
           expect(e, new isInstanceOf<cql.NoHealthyConnectionsException>());
         }, count: 1);
 
-        client
+        client!
             .execute(query)
             .then((_) => server.shutdown())
-            .then((_) => client.execute(query))
+            .then((_) => client!.execute(query))
             .catchError(fail);
       });
 
@@ -913,8 +901,7 @@ INSERT INTO test.type_test (
                 autoDiscoverNodes: false,
                 protocolVersion: cql.ProtocolVersion.V3));
 
-        cql.Query query = new cql.Query(
-            """
+        cql.Query query = new cql.Query("""
 INSERT INTO test.type_test (
 	ascii_type, bigint_type, decimal_type, bool_type,
 	double_type, float_type, inet_type, int_type, list_type, map_type,
@@ -925,9 +912,7 @@ INSERT INTO test.type_test (
 	:double_type, :float_type, :inet_type, :int_type, :list_type, :map_type,
 	:set_type, :text_type, :timestamp_type, :uuid_type, :timeuuid_type,
 	:varchar_type, :varint_type, :blob_type
-)""",
-            consistency: cql.Consistency.ONE,
-            prepared: true);
+)""", consistency: cql.Consistency.ONE, prepared: true);
 
         query.bindings = {
           "ascii_type": "123",
@@ -946,7 +931,7 @@ INSERT INTO test.type_test (
           "uuid_type": new cql.Uuid.simple(),
           "timeuuid_type": new cql.Uuid.timeBased(),
           "varchar_type": "test 123",
-          "varint_type": 123456,
+          "varint_type": BigInt.from(123456),
           "blob_type": new Uint8List.fromList([
             0x8B,
             0xAD,
@@ -964,7 +949,9 @@ INSERT INTO test.type_test (
         };
 
         void done(cql.VoidResultMessage msg) {}
-        client.execute(query).then(expectAsync(done));
+        client!
+            .execute(query)
+            .then(expectAsync(done) as FutureOr<void> Function(ResultMessage?));
       });
     });
 
@@ -990,7 +977,7 @@ INSERT INTO test.type_test (
                 equals("test"));
           }
 
-          client.connectionPool
+          client!.connectionPool
               .connect()
               // Wait for event registration message to be received and then reply the event message
               .then((_) => new Future.delayed(new Duration(milliseconds: 100),
@@ -999,8 +986,9 @@ INSERT INTO test.type_test (
                   new Duration(milliseconds: 100), () => server.shutdown()))
               // Wait for the client to connect to discovered node and try executing a query
               .then((_) => new Future.delayed(new Duration(milliseconds: 200),
-                  () => client.execute(new cql.Query("USE test"))))
-              .then(expectAsync(handleResult));
+                  () => client!.execute(new cql.Query("USE test"))))
+              .then(expectAsync(handleResult) as FutureOr<void> Function(
+                  ResultMessage?));
         });
 
         test(
@@ -1023,14 +1011,14 @@ INSERT INTO test.type_test (
             expect(e, new isInstanceOf<cql.NoHealthyConnectionsException>());
           }
 
-          client.connectionPool
+          client!.connectionPool
               .connect()
               // Wait for the event registration ready event to arrive and then shut server 2 down
               .then((_) => new Future.delayed(new Duration(milliseconds: 20),
                   () => server2.replayFile(0, "event_status_down_v2.dump")))
               // Wait for the node down message to be processed and attempt a query that should fail
               .then((_) => new Future.delayed(new Duration(milliseconds: 100),
-                  () => client.execute(new cql.Query("USE test"))))
+                  () => client!.execute(new cql.Query("USE test"))))
               .catchError(expectAsync(handleError));
         });
 
@@ -1053,7 +1041,7 @@ INSERT INTO test.type_test (
                 equals("test"));
           }
 
-          client.connectionPool
+          client!.connectionPool
               .connect()
               .then((_) {
                 // Wait for event registration message to be received and then reply the event message
@@ -1064,8 +1052,9 @@ INSERT INTO test.type_test (
                 return new Future.delayed(
                     new Duration(milliseconds: 400), () => server.shutdown());
               })
-              .then((_) => client.execute(new cql.Query("USE test")))
-              .then(expectAsync(handleResult));
+              .then((_) => client!.execute(new cql.Query("USE test")))
+              .then(expectAsync(handleResult) as FutureOr<void> Function(
+                  ResultMessage?));
         });
       });
 
@@ -1090,7 +1079,7 @@ INSERT INTO test.type_test (
                 equals("test"));
           }
 
-          client.connectionPool
+          client!.connectionPool
               .connect()
               .then((_) {
                 // Wait for event registration message to be received and then reply the event message
@@ -1101,8 +1090,9 @@ INSERT INTO test.type_test (
                 return new Future.delayed(
                     new Duration(milliseconds: 300), () => server.shutdown());
               })
-              .then((_) => client.execute(new cql.Query("USE test")))
-              .then(expectAsync(handleResult));
+              .then((_) => client!.execute(new cql.Query("USE test")))
+              .then(expectAsync(handleResult) as FutureOr<void> Function(
+                  ResultMessage?));
         });
       });
 
@@ -1131,11 +1121,12 @@ INSERT INTO test.type_test (
                 expect(message.port, isNull);
               }
 
-              client.connectionPool.listenForServerEvents([
+              client!.connectionPool.listenForServerEvents([
                 cql.EventRegistrationType.SCHEMA_CHANGE
-              ]).listen(expectAsync(handleMessage));
+              ]).listen(
+                  expectAsync(handleMessage) as void Function(EventMessage)?);
 
-              client.connectionPool.connect().then((_) {
+              client!.connectionPool.connect().then((_) {
                 // Wait for event registration message to be received and then reply the event message
                 return new Future.delayed(
                     new Duration(milliseconds: 100),
@@ -1166,11 +1157,12 @@ INSERT INTO test.type_test (
                 expect(message.port, isNull);
               }
 
-              client.connectionPool.listenForServerEvents([
+              client!.connectionPool.listenForServerEvents([
                 cql.EventRegistrationType.SCHEMA_CHANGE
-              ]).listen(expectAsync(handleMessage));
+              ]).listen(
+                  expectAsync(handleMessage) as void Function(EventMessage)?);
 
-              client.connectionPool.connect().then((_) {
+              client!.connectionPool.connect().then((_) {
                 // Wait for event registration message to be received and then reply the event message
                 return new Future.delayed(
                     new Duration(milliseconds: 100),
@@ -1203,11 +1195,12 @@ INSERT INTO test.type_test (
                 expect(message.port, isNull);
               }
 
-              client.connectionPool.listenForServerEvents([
+              client!.connectionPool.listenForServerEvents([
                 cql.EventRegistrationType.SCHEMA_CHANGE
-              ]).listen(expectAsync(handleMessage));
+              ]).listen(
+                  expectAsync(handleMessage) as void Function(EventMessage)?);
 
-              client.connectionPool.connect().then((_) {
+              client!.connectionPool.connect().then((_) {
                 // Wait for event registration message to be received and then reply the event message
                 return new Future.delayed(
                     new Duration(milliseconds: 100),
@@ -1238,11 +1231,12 @@ INSERT INTO test.type_test (
                 expect(message.port, isNull);
               }
 
-              client.connectionPool.listenForServerEvents([
+              client!.connectionPool.listenForServerEvents([
                 cql.EventRegistrationType.SCHEMA_CHANGE
-              ]).listen(expectAsync(handleMessage));
+              ]).listen(
+                  expectAsync(handleMessage) as void Function(EventMessage)?);
 
-              client.connectionPool.connect().then((_) {
+              client!.connectionPool.connect().then((_) {
                 // Wait for event registration message to be received and then reply the event message
                 return new Future.delayed(
                     new Duration(milliseconds: 100),
@@ -1273,11 +1267,12 @@ INSERT INTO test.type_test (
                 expect(message.port, isNull);
               }
 
-              client.connectionPool.listenForServerEvents([
+              client!.connectionPool.listenForServerEvents([
                 cql.EventRegistrationType.SCHEMA_CHANGE
-              ]).listen(expectAsync(handleMessage));
+              ]).listen(
+                  expectAsync(handleMessage) as void Function(EventMessage)?);
 
-              client.connectionPool.connect().then((_) {
+              client!.connectionPool.connect().then((_) {
                 // Wait for event registration message to be received and then reply the event message
                 return new Future.delayed(
                     new Duration(milliseconds: 100),
@@ -1313,11 +1308,12 @@ INSERT INTO test.type_test (
               expect(message.port, isNull);
             }
 
-            client.connectionPool.listenForServerEvents([
+            client!.connectionPool.listenForServerEvents([
               cql.EventRegistrationType.SCHEMA_CHANGE
-            ]).listen(expectAsync(handleMessage));
+            ]).listen(
+                expectAsync(handleMessage) as void Function(EventMessage)?);
 
-            client.connectionPool.connect().then((_) {
+            client!.connectionPool.connect().then((_) {
               // Wait for event registration message to be received and then reply the event message
               return new Future.delayed(
                   new Duration(milliseconds: 100),
@@ -1348,11 +1344,12 @@ INSERT INTO test.type_test (
               expect(message.port, isNull);
             }
 
-            client.connectionPool.listenForServerEvents([
+            client!.connectionPool.listenForServerEvents([
               cql.EventRegistrationType.SCHEMA_CHANGE
-            ]).listen(expectAsync(handleMessage));
+            ]).listen(
+                expectAsync(handleMessage) as void Function(EventMessage)?);
 
-            client.connectionPool.connect().then((_) {
+            client!.connectionPool.connect().then((_) {
               // Wait for event registration message to be received and then reply the event message
               return new Future.delayed(
                   new Duration(milliseconds: 100),
@@ -1385,11 +1382,12 @@ INSERT INTO test.type_test (
               expect(message.port, isNull);
             }
 
-            client.connectionPool.listenForServerEvents([
+            client!.connectionPool.listenForServerEvents([
               cql.EventRegistrationType.SCHEMA_CHANGE
-            ]).listen(expectAsync(handleMessage));
+            ]).listen(
+                expectAsync(handleMessage) as void Function(EventMessage)?);
 
-            client.connectionPool.connect().then((_) {
+            client!.connectionPool.connect().then((_) {
               // Wait for event registration message to be received and then reply the event message
               return new Future.delayed(
                   new Duration(milliseconds: 100),
@@ -1420,11 +1418,12 @@ INSERT INTO test.type_test (
               expect(message.port, isNull);
             }
 
-            client.connectionPool.listenForServerEvents([
+            client!.connectionPool.listenForServerEvents([
               cql.EventRegistrationType.SCHEMA_CHANGE
-            ]).listen(expectAsync(handleMessage));
+            ]).listen(
+                expectAsync(handleMessage) as void Function(EventMessage)?);
 
-            client.connectionPool.connect().then((_) {
+            client!.connectionPool.connect().then((_) {
               // Wait for event registration message to be received and then reply the event message
               return new Future.delayed(
                   new Duration(milliseconds: 100),
@@ -1455,11 +1454,12 @@ INSERT INTO test.type_test (
               expect(message.port, isNull);
             }
 
-            client.connectionPool.listenForServerEvents([
+            client!.connectionPool.listenForServerEvents([
               cql.EventRegistrationType.SCHEMA_CHANGE
-            ]).listen(expectAsync(handleMessage));
+            ]).listen(
+                expectAsync(handleMessage) as void Function(EventMessage)?);
 
-            client.connectionPool.connect().then((_) {
+            client!.connectionPool.connect().then((_) {
               // Wait for event registration message to be received and then reply the event message
               return new Future.delayed(
                   new Duration(milliseconds: 100),
@@ -1492,11 +1492,12 @@ INSERT INTO test.type_test (
               expect(message.port, isNull);
             }
 
-            client.connectionPool.listenForServerEvents([
+            client!.connectionPool.listenForServerEvents([
               cql.EventRegistrationType.SCHEMA_CHANGE
-            ]).listen(expectAsync(handleMessage));
+            ]).listen(
+                expectAsync(handleMessage) as void Function(EventMessage)?);
 
-            client.connectionPool.connect().then((_) {
+            client!.connectionPool.connect().then((_) {
               // Wait for event registration message to be received and then reply the event message
               return new Future.delayed(
                   new Duration(milliseconds: 100),
@@ -1527,11 +1528,12 @@ INSERT INTO test.type_test (
               expect(message.port, isNull);
             }
 
-            client.connectionPool.listenForServerEvents([
+            client!.connectionPool.listenForServerEvents([
               cql.EventRegistrationType.SCHEMA_CHANGE
-            ]).listen(expectAsync(handleMessage));
+            ]).listen(
+                expectAsync(handleMessage) as void Function(EventMessage)?);
 
-            client.connectionPool.connect().then((_) {
+            client!.connectionPool.connect().then((_) {
               // Wait for event registration message to be received and then reply the event message
               return new Future.delayed(
                   new Duration(milliseconds: 100),
@@ -1562,11 +1564,12 @@ INSERT INTO test.type_test (
               expect(message.port, isNull);
             }
 
-            client.connectionPool.listenForServerEvents([
+            client!.connectionPool.listenForServerEvents([
               cql.EventRegistrationType.SCHEMA_CHANGE
-            ]).listen(expectAsync(handleMessage));
+            ]).listen(
+                expectAsync(handleMessage) as void Function(EventMessage)?);
 
-            client.connectionPool.connect().then((_) {
+            client!.connectionPool.connect().then((_) {
               // Wait for event registration message to be received and then reply the event message
               return new Future.delayed(
                   new Duration(milliseconds: 100),

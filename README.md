@@ -1,8 +1,5 @@
 # Dart Driver for Apache Cassandra
 
-[![Build Status](https://drone.io/github.com/achilleasa/dart_cassandra_cql/status.png)](https://drone.io/github.com/achilleasa/dart_cassandra_cql/latest)
-[![Coverage Status](https://coveralls.io/repos/achilleasa/dart_cassandra_cql/badge.svg)](https://coveralls.io/r/achilleasa/dart_cassandra_cql)
-
 Dart driver for [Apache Cassandra](http://Cassandra.apache.org/) that supports Cassandra Query Language version [3.0+](http://www.datastax.com/documentation/cql/3.1/cql/cql_intro_c.html) (CQL3). 
 
 The driver has a small dependency tree and implements Cassandra binary protocol (versions 2 and 3) for communicating with Cassandra servers. The protocol and CQL versions to be used are both configurable by the user.
@@ -44,7 +41,7 @@ void main() {
   // Perform a select with positional bindings
   client.query(
       cql.Query("SELECT * from test.type_test WHERE id=?", bindings : [123])
-  ).then((Iterable<Map<String, Object>> rows) {
+  ).then((Iterable<Map<String, Object?>> rows) {
     // ...
   });
 
@@ -86,7 +83,7 @@ void main() {
   sub = client.stream(
       cql.Query("SELECT * from test.type_test")
       , pageSize : 200
-  ).listen((Map<String, Object> row) {
+  ).listen((Map<String, Object?> row) {
     // Handle incoming row
     print("Next row: ${row}");
     // ... or manipulate stream

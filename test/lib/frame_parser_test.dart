@@ -1,34 +1,35 @@
 library dart_cassandra_cql.tests.frame_grabber;
 
 import "dart:async";
+import 'dart:typed_data';
 import "package:test/test.dart";
 import "mocks/mocks.dart" as mock;
 
-import '../../lib/src/types.dart';
-import '../../lib/src/protocol.dart';
-import '../../lib/src/exceptions.dart';
+import 'package:dart_cassandra_cql/src/types.dart';
+import 'package:dart_cassandra_cql/src/protocol.dart';
+import 'package:dart_cassandra_cql/src/exceptions.dart';
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   if (enableLogger) {
     mock.initLogger();
   }
 
   FrameWriter writer;
-  StreamController<List<int>> streamController;
-  Stream<Frame> frameGrabber;
+  late StreamController<Uint8List> streamController;
+  late Stream<Frame> frameGrabber;
 
   group("Frame parser (V2):", () {
     setUp(() {
       writer = new FrameWriter(0, ProtocolVersion.V2);
-      streamController = new StreamController<List<int>>(sync: false);
+      streamController = new StreamController<Uint8List>(sync: false);
       frameGrabber =
           streamController.stream.transform(new FrameParser().transformer);
     });
 
     test("READY message", () {
       frameGrabber.listen(expectAsync((Frame frame) {
-        expect(frame.header.opcode, equals(Opcode.READY));
-      }));
+        expect(frame.header!.opcode, equals(Opcode.READY));
+      }) as void Function(Frame)?);
       mock.writeMessage(streamController, Opcode.READY.value,
           protocolVersion: ProtocolVersion.V2,
           headerVersion: HeaderVersion.RESPONSE_V2);
@@ -36,9 +37,9 @@ main({bool enableLogger: true}) {
 
     test("EVENT message (-1 streamId)", () {
       frameGrabber.listen(expectAsync((Frame frame) {
-        expect(frame.header.opcode, equals(Opcode.EVENT));
-        expect(frame.header.streamId, equals(-1));
-      }));
+        expect(frame.header!.opcode, equals(Opcode.EVENT));
+        expect(frame.header!.streamId, equals(-1));
+      }) as void Function(Frame)?);
       mock.writeMessage(streamController, Opcode.EVENT.value,
           protocolVersion: ProtocolVersion.V2,
           headerVersion: HeaderVersion.RESPONSE_V2,
@@ -53,7 +54,7 @@ main({bool enableLogger: true}) {
             (error.exception as DriverException).message,
             equals(
                 "Unknown frame with opcode 0x${0xFF.toRadixString(16)} and payload size 0x0"));
-      }));
+      }) as void Function());
 
       runZoned(() {
         frameGrabber.listen(((Frame frame) {
@@ -75,7 +76,7 @@ main({bool enableLogger: true}) {
             (error.exception as DriverException).message,
             equals(
                 "Frame size cannot be larger than ${FrameHeader.MAX_LENGTH_IN_BYTES} bytes. Attempted to read ${FrameHeader.MAX_LENGTH_IN_BYTES + 1} bytes"));
-      }));
+      }) as void Function());
 
       runZoned(() {
         frameGrabber.listen(((Frame frame) {
@@ -101,8 +102,8 @@ main({bool enableLogger: true}) {
 
     test("READY message", () {
       frameGrabber.listen(expectAsync((Frame frame) {
-        expect(frame.header.opcode, equals(Opcode.READY));
-      }));
+        expect(frame.header!.opcode, equals(Opcode.READY));
+      }) as void Function(Frame)?);
       mock.writeMessage(streamController, Opcode.READY.value,
           protocolVersion: ProtocolVersion.V2,
           headerVersion: HeaderVersion.RESPONSE_V2);
@@ -110,9 +111,9 @@ main({bool enableLogger: true}) {
 
     test("EVENT message (-1 streamId)", () {
       frameGrabber.listen(expectAsync((Frame frame) {
-        expect(frame.header.opcode, equals(Opcode.EVENT));
-        expect(frame.header.streamId, equals(-1));
-      }));
+        expect(frame.header!.opcode, equals(Opcode.EVENT));
+        expect(frame.header!.streamId, equals(-1));
+      }) as void Function(Frame)?);
       mock.writeMessage(streamController, Opcode.EVENT.value,
           protocolVersion: ProtocolVersion.V2,
           headerVersion: HeaderVersion.RESPONSE_V2,
@@ -127,7 +128,7 @@ main({bool enableLogger: true}) {
             (error.exception as DriverException).message,
             equals(
                 "Unknown frame with opcode 0x${0xFF.toRadixString(16)} and payload size 0x0"));
-      }));
+      }) as void Function());
 
       runZoned(() {
         frameGrabber.listen(((Frame frame) {
@@ -149,7 +150,7 @@ main({bool enableLogger: true}) {
             (error.exception as DriverException).message,
             equals(
                 "Frame size cannot be larger than ${FrameHeader.MAX_LENGTH_IN_BYTES} bytes. Attempted to read ${FrameHeader.MAX_LENGTH_IN_BYTES + 1} bytes"));
-      }));
+      }) as void Function());
 
       runZoned(() {
         frameGrabber.listen(((Frame frame) {

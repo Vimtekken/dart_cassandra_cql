@@ -4,11 +4,11 @@ import "dart:typed_data";
 import "dart:io";
 import "package:test/test.dart";
 
-import '../../lib/dart_cassandra_cql.dart' as cql;
+import 'package:dart_cassandra_cql/dart_cassandra_cql.dart' as cql;
 import "mocks/mocks.dart" as mock;
 import "mocks/custom.dart" as custom;
 
-main({bool enableLogger: true}) {
+main({bool enableLogger: false}) {
   if (enableLogger) {
     mock.initLogger();
   }
@@ -33,8 +33,10 @@ main({bool enableLogger: true}) {
       cql.unregisterCodec(customJson.customTypeClass);
       expect(
           () => new cql.Query(
-              "INSERT INTO test.custom_type (login, custom) VALUES ('bar', :baz )",
-              bindings: {'baz': customJson}).expandedQuery,
+                  "INSERT INTO test.custom_type (login, custom) VALUES ('bar', :baz )",
+                  bindings: {
+                    'baz': customJson
+                  }).expandedQuery,
           throwsA((e) =>
               e is ArgumentError &&
               e.message ==
@@ -216,7 +218,7 @@ main({bool enableLogger: true}) {
         expect(
             () => new cql.Query("SELECT foo FROM bar WHERE baz=? AND boo = ?",
                 bindings: [1]).expandedQuery,
-            throwsA(predicate((e) =>
+            throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message == "Missing argument '1' from bindings list")));
       });
@@ -233,7 +235,8 @@ main({bool enableLogger: true}) {
                 bindings: {'baz': 'Simple string'}).expandedQuery,
             "SELECT foo FROM bar WHERE baz='Simple string'");
         expect(
-            new cql.Query("SELECT foo FROM bar WHERE skip=':baz' AND baz=:baz OR boo=:boo",
+            new cql.Query(
+                "SELECT foo FROM bar WHERE skip=':baz' AND baz=:baz OR boo=:boo",
                 bindings: {
                   'baz': r"'Quoted' string",
                   'boo': r"Yet \''Another'\' string"
@@ -393,7 +396,7 @@ main({bool enableLogger: true}) {
               () => new cql.Query(
                   "SELECT foo FROM bar WHERE baz=:baz AND boo =:boo",
                   bindings: {'boo': 1}).expandedQuery,
-              throwsA(predicate((e) =>
+              throwsA(predicate((dynamic e) =>
                   e is ArgumentError &&
                   e.message == "Missing binding for named placeholder 'baz'")));
         });
@@ -402,7 +405,7 @@ main({bool enableLogger: true}) {
               () => new cql.Query(
                   "SELECT foo FROM bar WHERE baz=:\$ AND boo =:boo",
                   bindings: {'boo': 1}).expandedQuery,
-              throwsA(predicate((e) =>
+              throwsA(predicate((dynamic e) =>
                   e is ArgumentError &&
                   e.message ==
                       'Expected named placeholder to begin at offset 30')));
