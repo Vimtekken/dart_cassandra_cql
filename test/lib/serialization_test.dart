@@ -3,6 +3,7 @@ library dart_cassandra_cql.tests.serialization;
 import "dart:typed_data";
 import "dart:io";
 import "dart:math";
+import 'package:dart_cassandra_cql/src/types/ints.dart';
 import "package:test/test.dart";
 
 import 'package:dart_cassandra_cql/src/stream.dart';
@@ -439,6 +440,50 @@ main({bool enableLogger: false}) {
           test("(negative)", () {
             Object input = -21474836;
             TypeSpec type = new TypeSpec(DataType.int);
+            encoder.writeTypedValue('test', input, typeSpec: type, size: size);
+            Object? output =
+                mock.createDecoder(encoder).readTypedValue(type, size: size);
+
+            expect(output, equals(input));
+          });
+        });
+
+        group("SMALLINT", () {
+          test("(positive)", () {
+            SmallInt input = SmallInt(32768);
+            TypeSpec type = new TypeSpec(DataType.smallint);
+            encoder.writeTypedValue('test', input, typeSpec: type, size: size);
+            Object? output =
+                mock.createDecoder(encoder).readTypedValue(type, size: size);
+
+            expect(output, equals(input));
+          });
+
+          test("(negative)", () {
+            SmallInt input = SmallInt(-32768);
+            TypeSpec type = new TypeSpec(DataType.smallint);
+            encoder.writeTypedValue('test', input, typeSpec: type, size: size);
+            Object? output =
+                mock.createDecoder(encoder).readTypedValue(type, size: size);
+
+            expect(output, equals(input));
+          });
+        });
+
+        group("TINYINT", () {
+          test("(positive)", () {
+            TinyInt input = TinyInt(128);
+            TypeSpec type = new TypeSpec(DataType.tinyint);
+            encoder.writeTypedValue('test', input, typeSpec: type, size: size);
+            Object? output =
+                mock.createDecoder(encoder).readTypedValue(type, size: size);
+
+            expect(output, equals(input));
+          });
+
+          test("(negative)", () {
+            TinyInt input = TinyInt(-128);
+            TypeSpec type = new TypeSpec(DataType.tinyint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);

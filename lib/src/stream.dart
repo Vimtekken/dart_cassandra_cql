@@ -8,6 +8,7 @@ import "dart:math";
 
 // Internal lib dependencies
 import 'package:dart_cassandra_cql/src/types.dart';
+import 'package:dart_cassandra_cql/src/types/ints.dart';
 
 // Block reader/writers
 part "stream/chunked_input_reader.dart";

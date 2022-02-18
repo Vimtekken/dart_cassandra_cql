@@ -50,6 +50,7 @@ extension ByteValuesForDataType on DataType {
     DataType.varint: 0x0e,
     DataType.timeuuid: 0x0f,
     DataType.inet: 0x10,
+    DataType.smallint: 0x13,
     DataType.tinyint: 0x14,
     DataType.list: 0x20,
     DataType.map: 0x21,
@@ -109,6 +110,10 @@ extension ByteValuesForDataType on DataType {
               : DataType.varint;
     } else if (value is num) {
       return DataType.double;
+    } else if (value is TinyInt) {
+      return DataType.tinyint;
+    } else if (value is SmallInt) {
+      return DataType.smallint;
     } else if (value is Uuid ||
         (value is String && _UUID_REGEX.hasMatch(value))) {
       return DataType.uuid;

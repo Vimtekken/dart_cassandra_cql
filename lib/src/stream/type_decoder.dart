@@ -20,49 +20,54 @@ class TypeDecoder {
   int readUInt() {
     int val = _buffer.getUint32(_offset, endianess);
     _offset += 4;
-
     return val;
   }
 
   int readInt() {
     int val = _buffer.getInt32(_offset, endianess);
     _offset += 4;
+    return val;
+  }
 
+  int readInt16() {
+    int val = _buffer.getInt16(_offset, endianess);
+    _offset += 2;
+    return val;
+  }
+
+  int readInt8() {
+    int val = _buffer.getInt8(_offset);
+    _offset += 1;
     return val;
   }
 
   double readFloat() {
     double val = _buffer.getFloat32(_offset, endianess);
     _offset += 4;
-
     return val;
   }
 
   double readDouble() {
     double val = _buffer.getFloat64(_offset, endianess);
     _offset += 8;
-
     return val;
   }
 
   int readLong() {
     int val = _buffer.getInt64(_offset, endianess);
     _offset += 8;
-
     return val;
   }
 
   int readSignedShort() {
     int val = _buffer.getInt16(_offset, endianess);
     _offset += 2;
-
     return val;
   }
 
   int readShort() {
     int val = _buffer.getUint16(_offset, endianess);
     _offset += 2;
-
     return val;
   }
 
@@ -357,6 +362,10 @@ class TypeDecoder {
       case DataType.bigint:
       case DataType.counter:
         return readLong();
+      case DataType.smallint:
+        return SmallInt(readInt16());
+      case DataType.tinyint:
+        return TinyInt(readInt8());
       case DataType.timestamp:
         return DateTime.fromMillisecondsSinceEpoch(readLong());
       case DataType.boolean:

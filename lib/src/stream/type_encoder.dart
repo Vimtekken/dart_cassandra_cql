@@ -37,6 +37,12 @@ class TypeEncoder {
     _writer!.addLast(buf);
   }
 
+  void writeInt8(int value) {
+    Uint8List buf = Uint8List(1);
+    ByteData.view(buf.buffer).setInt8(0, value);
+    _writer!.addLast(buf);
+  }
+
   void writeInt16(int value) {
     Uint8List buf = Uint8List(2);
     ByteData.view(buf.buffer).setInt16(0, value, endianess);
@@ -202,7 +208,7 @@ class TypeEncoder {
 
     if (typeSpec == null && forceType == null) {
       throw ArgumentError(
-            "Unsupported type null for arg '${name}' with value ${value}");
+          "Unsupported type null for arg '${name}' with value ${value}");
     }
     DataType valueType = typeSpec != null ? typeSpec.valueType : forceType!;
 
@@ -255,6 +261,14 @@ class TypeEncoder {
       case DataType.counter:
         writeLength(8, size);
         writeUInt64(value as int);
+        break;
+      case DataType.tinyint:
+        writeLength(1, size);
+        writeInt8((value as TinyInt).data);
+        break;
+      case DataType.smallint:
+        writeLength(2, size);
+        writeInt16((value as SmallInt).data);
         break;
       case DataType.timestamp:
         if (value is! DateTime) {
