@@ -128,11 +128,6 @@ class TypeEncoder {
   }
 
   void writeStringMap(Map<String, String?> value, SizeType size) {
-    if (value == null) {
-      writeNull(size);
-      return;
-    }
-
     // Write the length followed by a string for each K,V
     writeLength(value.length, size);
     value.forEach((String k, String? v) {
@@ -142,11 +137,6 @@ class TypeEncoder {
   }
 
   void writeStringMultiMap(Map<String, List<String>> value, SizeType size) {
-    if (value == null) {
-      writeNull(size);
-      return;
-    }
-
     // Write the length followed by a string, stringlist tuple for each K,V
     writeLength(value.length, size);
     value.forEach((String k, List<String> v) {
@@ -156,11 +146,6 @@ class TypeEncoder {
   }
 
   void _writeAsciiString(String value, SizeType size) {
-    if (value == null) {
-      writeNull(size);
-      return;
-    }
-
     Uint8List bytes = Uint8List.fromList(ascii.encode(value));
 
     // Write the length followed by the actual bytes
@@ -169,11 +154,6 @@ class TypeEncoder {
   }
 
   void _writeUUID(Uuid uuid, SizeType size) {
-    if (uuid == null) {
-      writeNull(size);
-      return;
-    }
-
     writeBytes(uuid.bytes, size);
   }
 
@@ -214,31 +194,35 @@ class TypeEncoder {
       {TypeSpec? typeSpec: null,
       DataType? forceType: null,
       SizeType size: SizeType.LONG}) {
-    DataType? valueType = typeSpec != null ? typeSpec.valueType : forceType;
-    //_logger.fine("[TypeEncoder::writeTypedValue] Attempting to write ${DataType.nameOf(valueType)} @ 0x${(encoder.writer.lengthInBytes + (encoder.protocolVersion == ProtocolVersion.V2 ? Header.SIZE_IN_BYTES_V2 : Header.SIZE_IN_BYTES_V3)).toRadixString(16)}");
-
+    //_logger.fine("[TypeEncoder::writeTypedValue] Attempting to write ${valueType.name} @ 0x${(encoder.writer.lengthInBytes + (encoder.protocolVersion == ProtocolVersion.V2 ? Header.SIZE_IN_BYTES_V2 : Header.SIZE_IN_BYTES_V3)).toRadixString(16)}");
     if (value == null) {
       writeNull(size);
       return;
     }
 
+    if (typeSpec == null && forceType == null) {
+      throw ArgumentError(
+            "Unsupported type null for arg '${name}' with value ${value}");
+    }
+    DataType valueType = typeSpec != null ? typeSpec.valueType : forceType!;
+
     switch (valueType) {
-      case DataType.ASCII:
+      case DataType.ascii:
         _writeAsciiString(value as String, size);
         break;
-      case DataType.TEXT:
-      case DataType.VARCHAR:
+      case DataType.text:
+      case DataType.varchar:
         writeString(value as String?, size);
         break;
-      case DataType.UUID:
-      case DataType.TIMEUUID:
+      case DataType.uuid:
+      case DataType.timeuuid:
         if (value is! Uuid) {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to be an instance of Uuid");
+              "Expected value for field '${name}' of type ${valueType.name} to be an instance of Uuid");
         }
         _writeUUID(value, size);
         break;
-      case DataType.CUSTOM:
+      case DataType.custom:
         // If this is a Uint8List write is to the byte stream.
         // Otherwise, check if this is a CustomType instance with a registered codec
         if (value is Uint8List) {
@@ -253,57 +237,57 @@ class TypeEncoder {
           }
         } else {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to be an instance of Uint8List OR an instance of CustomType with a registered type handler");
+              "Expected value for field '${name}' of type ${valueType.name} to be an instance of Uint8List OR an instance of CustomType with a registered type handler");
         }
         break;
-      case DataType.BLOB:
+      case DataType.blob:
         if (value is! Uint8List) {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to be an instance of Uint8List");
+              "Expected value for field '${name}' of type ${valueType.name} to be an instance of Uint8List");
         }
         writeBytes(value, size);
         break;
-      case DataType.INT:
+      case DataType.int:
         writeLength(4, size);
         writeInt32(value as int);
         break;
-      case DataType.BIGINT:
-      case DataType.COUNTER:
+      case DataType.bigint:
+      case DataType.counter:
         writeLength(8, size);
         writeUInt64(value as int);
         break;
-      case DataType.TIMESTAMP:
+      case DataType.timestamp:
         if (value is! DateTime) {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to be an instance of DateTime");
+              "Expected value for field '${name}' of type ${valueType.name} to be an instance of DateTime");
         }
         writeLength(8, size);
         writeUInt64(value.millisecondsSinceEpoch);
         break;
-      case DataType.BOOLEAN:
+      case DataType.boolean:
         writeLength(1, size);
         writeUint8(value == true ? 0x01 : 0x00);
         break;
-      case DataType.FLOAT:
+      case DataType.float:
         writeLength(4, size);
         writeFloat(value as double);
         break;
-      case DataType.DOUBLE:
+      case DataType.double:
         writeLength(8, size);
         writeDouble(value as double);
         break;
-      case DataType.INET:
+      case DataType.inet:
         if (value is! InternetAddress) {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to be an instance of InternetAddress");
+              "Expected value for field '${name}' of type ${valueType.name} to be an instance of InternetAddress");
         }
         writeBytes(value.rawAddress, size);
         break;
-      case DataType.LIST:
-      case DataType.SET:
+      case DataType.list:
+      case DataType.set:
         if (value is! Iterable) {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to implement Iterable");
+              "Expected value for field '${name}' of type ${valueType.name} to implement Iterable");
         }
         Iterable v = value;
 
@@ -320,10 +304,10 @@ class TypeEncoder {
         writeLength(scopedEncoder.writer!.lengthInBytes, size);
         writer!.addAll(scopedEncoder.writer!.chunks);
         break;
-      case DataType.MAP:
+      case DataType.map:
         if (value is! Map) {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to implement Map");
+              "Expected value for field '${name}' of type ${valueType.name} to implement Map");
         }
         Map v = value;
 
@@ -346,16 +330,16 @@ class TypeEncoder {
         writer!.addAll(scopedEncoder.writer!.chunks);
 
         break;
-      case DataType.DECIMAL:
+      case DataType.decimal:
         _writeDecimal(value as num, size);
         break;
-      case DataType.VARINT:
+      case DataType.varint:
         _writeVarInt(value as BigInt, size);
         break;
-      case DataType.UDT:
+      case DataType.udt:
         if (value is! Map) {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to implement Map");
+              "Expected value for field '${name}' of type ${valueType.name} to implement Map");
         }
         Map v = value;
 
@@ -372,10 +356,10 @@ class TypeEncoder {
         writer!.addAll(scopedEncoder.writer!.chunks);
 
         break;
-      case DataType.TUPLE:
+      case DataType.tuple:
         if (value is! Tuple) {
           throw ArgumentError(
-              "Expected value for field '${name}' of type ${DataType.nameOf(valueType)} to be an instance of Tuple");
+              "Expected value for field '${name}' of type ${valueType.name} to be an instance of Tuple");
         }
 
         Iterable v = value;
@@ -394,7 +378,7 @@ class TypeEncoder {
         break;
       default:
         throw ArgumentError(
-            "Unsupported type ${DataType.nameOf(valueType)} for arg '${name}' with value ${value}");
+            "Unsupported type ${valueType.name} for arg '${name}' with value ${value}");
     }
   }
 

@@ -22,7 +22,7 @@ class EventMessage extends Message {
     switch (type) {
       case EventRegistrationType.TOPOLOGY_CHANGE:
       case EventRegistrationType.STATUS_CHANGE:
-        address = decoder.readTypedValue(TypeSpec(DataType.INET),
+        address = decoder.readTypedValue(TypeSpec(DataType.inet),
             size: SizeType.BYTE) as InternetAddress?;
         port = decoder.readInt();
         break;

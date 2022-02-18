@@ -1,10 +1,9 @@
 name: dart_cassandra_cql
 version: 1.0.0
-author: Vimtekken
 description: Dart driver for apache Cassandra
 homepage: https://github.com/Vimtekken/dart_cassandra_cql
 environment:
-    sdk: '>=2.12.0 <3.0.0'
+    sdk: '>=2.15.0 <3.0.0'
 dependencies:
   uuid: ^3.0.0
   collection: ^1.15.0

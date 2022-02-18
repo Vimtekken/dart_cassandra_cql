@@ -273,29 +273,29 @@ class TypeDecoder {
   }
 
   TypeSpec readTypeOption() {
-    DataType type = DataType.valueOf(readShort());
+    DataType type = ByteValuesForDataType.fromByteValue(readShort());
     Object? keyType = null;
     TypeSpec? spec = null;
 
     // Collection types and custom type have additional
     // option parameters which we need to parse
     switch (type) {
-      case DataType.CUSTOM:
+      case DataType.custom:
         // Custom type java FQ class
         spec = TypeSpec(type)..customTypeClass = readString(SizeType.SHORT);
         break;
-      case DataType.LIST:
-      case DataType.SET:
+      case DataType.list:
+      case DataType.set:
         // Value is an option representing the list item type
         spec = TypeSpec(type,
             keySubType: keyType as TypeSpec?, valueSubType: readTypeOption());
         break;
-      case DataType.MAP:
+      case DataType.map:
         // We have two option values, one for the map key type and one for the value type
         spec = TypeSpec(type,
             keySubType: readTypeOption(), valueSubType: readTypeOption());
         break;
-      case DataType.UDT:
+      case DataType.udt:
         spec = TypeSpec(type);
         spec.keyspace = readString(SizeType.SHORT);
         spec.udtName = readString(SizeType.SHORT);
@@ -308,7 +308,7 @@ class TypeDecoder {
           }
         }
         break;
-      case DataType.TUPLE:
+      case DataType.tuple:
         spec = TypeSpec(type);
         // numFields <TypeOption> records follow
         int numFields = readShort();
@@ -335,37 +335,37 @@ class TypeDecoder {
     }
 
     switch (typeSpec!.valueType) {
-      case DataType.ASCII:
+      case DataType.ascii:
         return readAsciiString(size, lenInBytes);
-      case DataType.TEXT:
-      case DataType.VARCHAR:
+      case DataType.text:
+      case DataType.varchar:
         return readString(size, lenInBytes);
-      case DataType.UUID:
-      case DataType.TIMEUUID:
+      case DataType.uuid:
+      case DataType.timeuuid:
         return Uuid.fromBytes(readBytes(size, lenInBytes)!);
-      case DataType.CUSTOM:
+      case DataType.custom:
         // If a codec has been specified for this type, use that; otherwise return the
         // serialized data as a Uint8 list
         Codec? typeCodec = getCodec(typeSpec.customTypeClass);
         return typeCodec != null
             ? typeCodec.decode(readBytes(size, lenInBytes))
             : readBytes(size, lenInBytes);
-      case DataType.BLOB:
+      case DataType.blob:
         return readBytes(size, lenInBytes);
-      case DataType.INT:
+      case DataType.int:
         return readInt();
-      case DataType.BIGINT:
-      case DataType.COUNTER:
+      case DataType.bigint:
+      case DataType.counter:
         return readLong();
-      case DataType.TIMESTAMP:
+      case DataType.timestamp:
         return DateTime.fromMillisecondsSinceEpoch(readLong());
-      case DataType.BOOLEAN:
+      case DataType.boolean:
         return readByte() != 0;
-      case DataType.FLOAT:
+      case DataType.float:
         return readFloat();
-      case DataType.DOUBLE:
+      case DataType.double:
         return readDouble();
-      case DataType.INET:
+      case DataType.inet:
         // INET can be either 4 (ipv4) or 16 (ipv6) bytes long
         if (lenInBytes == 4) {
           Uint8List buf = readBytes(SizeType.BYTE, lenInBytes)!;
@@ -377,8 +377,7 @@ class TypeDecoder {
         } else {
           throw Exception("Could not decode INET type of length ${lenInBytes}");
         }
-        break;
-      case DataType.LIST:
+      case DataType.list:
         SizeType itemSize = protocolVersion == ProtocolVersion.V2
             ? SizeType.SHORT
             : SizeType.LONG;
@@ -389,7 +388,7 @@ class TypeDecoder {
         // Each record is a <short(V2)>/<int(V3)> length followed by M bytes.
         return List.generate(
             len, (_) => readTypedValue(typeSpec.valueSubType, size: itemSize));
-      case DataType.SET:
+      case DataType.set:
         SizeType itemSize = protocolVersion == ProtocolVersion.V2
             ? SizeType.SHORT
             : SizeType.LONG;
@@ -403,7 +402,7 @@ class TypeDecoder {
           set.add(readTypedValue(typeSpec.valueSubType, size: itemSize));
         }
         return set;
-      case DataType.MAP:
+      case DataType.map:
         SizeType itemSize = protocolVersion == ProtocolVersion.V2
             ? SizeType.SHORT
             : SizeType.LONG;
@@ -417,16 +416,16 @@ class TypeDecoder {
               readTypedValue(typeSpec.valueSubType, size: itemSize);
         }
         return map;
-      case DataType.DECIMAL:
+      case DataType.decimal:
         return readDecimal(size, lenInBytes);
-      case DataType.VARINT:
+      case DataType.varint:
         return readVarInt(size, lenInBytes);
-      case DataType.UDT:
+      case DataType.udt:
         Map udt = LinkedHashMap();
         typeSpec.udtFields.forEach((String? name, TypeSpec udtSpec) =>
             udt[name] = readTypedValue(udtSpec, size: size));
         return udt;
-      case DataType.TUPLE:
+      case DataType.tuple:
         Tuple tuple = Tuple.fromIterable(List.generate(
             typeSpec.tupleFields.length,
             (int fieldIndex) =>

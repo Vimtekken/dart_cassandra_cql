@@ -34,23 +34,23 @@ main({bool enableLogger: false}) {
       group("TypeSpec:", () {
         test("Missing key/valueSubTYpe", () {
           expect(
-              () => new TypeSpec(DataType.MAP),
+              () => new TypeSpec(DataType.map),
               throwsA(predicate((dynamic e) =>
                   e is ArgumentError &&
                   e.message ==
                       "MAP type should specify TypeSpec instances for both its keys and values")));
 
           expect(
-              () => new TypeSpec(DataType.MAP,
-                  keySubType: new TypeSpec(DataType.ASCII)),
+              () => new TypeSpec(DataType.map,
+                  keySubType: new TypeSpec(DataType.ascii)),
               throwsA(predicate((dynamic e) =>
                   e is ArgumentError &&
                   e.message ==
                       "MAP type should specify TypeSpec instances for both its keys and values")));
 
           expect(
-              () => new TypeSpec(DataType.MAP,
-                  valueSubType: new TypeSpec(DataType.ASCII)),
+              () => new TypeSpec(DataType.map,
+                  valueSubType: new TypeSpec(DataType.ascii)),
               throwsA(predicate((dynamic e) =>
                   e is ArgumentError &&
                   e.message ==
@@ -59,14 +59,14 @@ main({bool enableLogger: false}) {
 
         test("Missing valueSubType", () {
           expect(
-              () => new TypeSpec(DataType.LIST),
+              () => new TypeSpec(DataType.list),
               throwsA(predicate((dynamic e) =>
                   e is ArgumentError &&
                   e.message ==
                       "LIST type should specify a TypeSpec instance for its values")));
 
           expect(
-              () => new TypeSpec(DataType.SET),
+              () => new TypeSpec(DataType.set),
               throwsA(predicate((dynamic e) =>
                   e is ArgumentError &&
                   e.message ==
@@ -76,26 +76,26 @@ main({bool enableLogger: false}) {
 
       test("Not instance of DateTime", () {
         Object input = "foo";
-        TypeSpec type = new TypeSpec(DataType.TIMESTAMP);
+        TypeSpec type = new TypeSpec(DataType.timestamp);
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type TIMESTAMP to be an instance of DateTime")));
+                    "Expected value for field 'test' of type timestamp to be an instance of DateTime")));
       });
 
       test("Not instance of Uint8List or CustomType", () {
         Object input = "foo";
-        TypeSpec type = new TypeSpec(DataType.CUSTOM);
+        TypeSpec type = new TypeSpec(DataType.custom);
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type CUSTOM to be an instance of Uint8List OR an instance of CustomType with a registered type handler")));
+                    "Expected value for field 'test' of type custom to be an instance of Uint8List OR an instance of CustomType with a registered type handler")));
 
         expect(
             () => encoder.writeTypedValue('test', new Uint16List.fromList([]),
@@ -103,7 +103,7 @@ main({bool enableLogger: false}) {
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type CUSTOM to be an instance of Uint8List OR an instance of CustomType with a registered type handler")));
+                    "Expected value for field 'test' of type custom to be an instance of Uint8List OR an instance of CustomType with a registered type handler")));
 
         unregisterCodec(customJsonInstance.customTypeClass);
         expect(
@@ -114,83 +114,83 @@ main({bool enableLogger: false}) {
                 e.message ==
                     "No custom type handler codec registered for custom type: ${customJsonInstance.customTypeClass}")));
 
-        type = new TypeSpec(DataType.BLOB);
+        type = new TypeSpec(DataType.blob);
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type BLOB to be an instance of Uint8List")));
+                    "Expected value for field 'test' of type blob to be an instance of Uint8List")));
       });
 
       test("Not instance of InternetAddress", () {
         Object input = "foo";
-        TypeSpec type = new TypeSpec(DataType.INET);
+        TypeSpec type = new TypeSpec(DataType.inet);
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type INET to be an instance of InternetAddress")));
+                    "Expected value for field 'test' of type inet to be an instance of InternetAddress")));
       });
 
       test("Not instance of Iterable", () {
         Object input = "foo";
-        TypeSpec type = new TypeSpec(DataType.LIST,
-            valueSubType: new TypeSpec(DataType.ASCII));
+        TypeSpec type = new TypeSpec(DataType.list,
+            valueSubType: new TypeSpec(DataType.ascii));
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type LIST to implement Iterable")));
-        type = new TypeSpec(DataType.SET,
-            valueSubType: new TypeSpec(DataType.ASCII));
+                    "Expected value for field 'test' of type list to implement Iterable")));
+        type = new TypeSpec(DataType.set,
+            valueSubType: new TypeSpec(DataType.ascii));
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type SET to implement Iterable")));
+                    "Expected value for field 'test' of type set to implement Iterable")));
       });
 
       test("Not instance of Map", () {
         Object input = "foo";
-        TypeSpec type = new TypeSpec(DataType.MAP,
-            keySubType: new TypeSpec(DataType.ASCII),
-            valueSubType: new TypeSpec(DataType.ASCII));
+        TypeSpec type = new TypeSpec(DataType.map,
+            keySubType: new TypeSpec(DataType.ascii),
+            valueSubType: new TypeSpec(DataType.ascii));
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type MAP to implement Map")));
+                    "Expected value for field 'test' of type map to implement Map")));
 
-        type = new TypeSpec(DataType.UDT);
+        type = new TypeSpec(DataType.udt);
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type UDT to implement Map")));
+                    "Expected value for field 'test' of type udt to implement Map")));
       });
 
       test("Not instance of Tuple", () {
         Object input = ["foo"];
-        TypeSpec type = new TypeSpec(DataType.TUPLE);
+        TypeSpec type = new TypeSpec(DataType.tuple);
         expect(
             () => encoder.writeTypedValue('test', input,
                 typeSpec: type, size: size),
             throwsA(predicate((dynamic e) =>
                 e is ArgumentError &&
                 e.message ==
-                    "Expected value for field 'test' of type TUPLE to be an instance of Tuple")));
+                    "Expected value for field 'test' of type tuple to be an instance of Tuple")));
       });
     });
 
@@ -241,7 +241,7 @@ main({bool enableLogger: false}) {
 
       test("UTF-8 STRING", () {
         Object input = "Test 123 AbC !@#ΤΕΣΤ";
-        TypeSpec type = new TypeSpec(DataType.TEXT);
+        TypeSpec type = new TypeSpec(DataType.text);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -251,7 +251,7 @@ main({bool enableLogger: false}) {
 
       test("ASCII STRING", () {
         Object input = "Test 123 AbC";
-        TypeSpec type = new TypeSpec(DataType.ASCII);
+        TypeSpec type = new TypeSpec(DataType.ascii);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -261,7 +261,7 @@ main({bool enableLogger: false}) {
 
       test("UUID", () {
         Object input = new Uuid.simple();
-        TypeSpec type = new TypeSpec(DataType.UUID);
+        TypeSpec type = new TypeSpec(DataType.uuid);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -271,7 +271,7 @@ main({bool enableLogger: false}) {
 
       test("TIMEUUID", () {
         Object input = new Uuid.timeBased();
-        TypeSpec type = new TypeSpec(DataType.TIMEUUID);
+        TypeSpec type = new TypeSpec(DataType.timeuuid);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -283,7 +283,7 @@ main({bool enableLogger: false}) {
         test("without type handler", () {
           Object input = new Uint8List.fromList(
               new List<int>.generate(10, (int index) => index * 2));
-          TypeSpec type = new TypeSpec(DataType.CUSTOM)
+          TypeSpec type = new TypeSpec(DataType.custom)
             ..customTypeClass = customJsonInstance.customTypeClass;
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
@@ -301,7 +301,7 @@ main({bool enableLogger: false}) {
             "foo": {"bar": "baz"}
           };
 
-          TypeSpec type = new TypeSpec(DataType.CUSTOM)
+          TypeSpec type = new TypeSpec(DataType.custom)
             ..customTypeClass = customJsonInstance.customTypeClass;
 
           encoder.writeTypedValue('test', customJsonInstance,
@@ -317,7 +317,7 @@ main({bool enableLogger: false}) {
       test("BLOB", () {
         Object input = new Uint8List.fromList(
             new List<int>.generate(10, (int index) => index * 2));
-        TypeSpec type = new TypeSpec(DataType.BLOB);
+        TypeSpec type = new TypeSpec(DataType.blob);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -328,7 +328,7 @@ main({bool enableLogger: false}) {
       group("COUNTER", () {
         test("(positive)", () {
           Object input = 9223372036854775807;
-          TypeSpec type = new TypeSpec(DataType.COUNTER);
+          TypeSpec type = new TypeSpec(DataType.counter);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -338,7 +338,7 @@ main({bool enableLogger: false}) {
 
         test("(negative)", () {
           Object input = -1;
-          TypeSpec type = new TypeSpec(DataType.COUNTER);
+          TypeSpec type = new TypeSpec(DataType.counter);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -349,7 +349,7 @@ main({bool enableLogger: false}) {
 
       test("TIMESTAMP", () {
         Object input = new DateTime.fromMillisecondsSinceEpoch(1455746327000);
-        TypeSpec type = new TypeSpec(DataType.TIMESTAMP);
+        TypeSpec type = new TypeSpec(DataType.timestamp);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -360,7 +360,7 @@ main({bool enableLogger: false}) {
       group("BOOLEAN", () {
         test("(true)", () {
           Object input = true;
-          TypeSpec type = new TypeSpec(DataType.BOOLEAN);
+          TypeSpec type = new TypeSpec(DataType.boolean);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -370,7 +370,7 @@ main({bool enableLogger: false}) {
 
         test("(false)", () {
           Object input = false;
-          TypeSpec type = new TypeSpec(DataType.BOOLEAN);
+          TypeSpec type = new TypeSpec(DataType.boolean);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -382,7 +382,7 @@ main({bool enableLogger: false}) {
       group("BOOLEAN", () {
         test("(true)", () {
           Object input = true;
-          TypeSpec type = new TypeSpec(DataType.BOOLEAN);
+          TypeSpec type = new TypeSpec(DataType.boolean);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -392,7 +392,7 @@ main({bool enableLogger: false}) {
 
         test("(false)", () {
           Object input = false;
-          TypeSpec type = new TypeSpec(DataType.BOOLEAN);
+          TypeSpec type = new TypeSpec(DataType.boolean);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -404,7 +404,7 @@ main({bool enableLogger: false}) {
       group("INET:", () {
         test("(ipv4)", () {
           Object input = new InternetAddress("192.168.169.101");
-          TypeSpec type = new TypeSpec(DataType.INET);
+          TypeSpec type = new TypeSpec(DataType.inet);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -415,7 +415,7 @@ main({bool enableLogger: false}) {
         test("(ipv6)", () {
           Object input =
               new InternetAddress("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
-          TypeSpec type = new TypeSpec(DataType.INET);
+          TypeSpec type = new TypeSpec(DataType.inet);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -428,7 +428,7 @@ main({bool enableLogger: false}) {
         group("INT", () {
           test("(positive)", () {
             Object input = 2147483647;
-            TypeSpec type = new TypeSpec(DataType.INT);
+            TypeSpec type = new TypeSpec(DataType.int);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -438,7 +438,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -21474836;
-            TypeSpec type = new TypeSpec(DataType.INT);
+            TypeSpec type = new TypeSpec(DataType.int);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -450,7 +450,7 @@ main({bool enableLogger: false}) {
         group("BIGINT", () {
           test("(positive)", () {
             Object input = 9223372036854775807;
-            TypeSpec type = new TypeSpec(DataType.BIGINT);
+            TypeSpec type = new TypeSpec(DataType.bigint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -460,7 +460,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -922036854775807;
-            TypeSpec type = new TypeSpec(DataType.BIGINT);
+            TypeSpec type = new TypeSpec(DataType.bigint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -472,7 +472,7 @@ main({bool enableLogger: false}) {
         group("FLOAT", () {
           test("(positive)", () {
             Object input = 3.141516;
-            TypeSpec type = new TypeSpec(DataType.FLOAT);
+            TypeSpec type = new TypeSpec(DataType.float);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -482,7 +482,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -3.12345;
-            TypeSpec type = new TypeSpec(DataType.FLOAT);
+            TypeSpec type = new TypeSpec(DataType.float);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -494,7 +494,7 @@ main({bool enableLogger: false}) {
         group("DOUBLE", () {
           test("(positive)", () {
             Object input = 3.141516;
-            TypeSpec type = new TypeSpec(DataType.DOUBLE);
+            TypeSpec type = new TypeSpec(DataType.double);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -504,7 +504,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -3.12345;
-            TypeSpec type = new TypeSpec(DataType.DOUBLE);
+            TypeSpec type = new TypeSpec(DataType.double);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -516,7 +516,7 @@ main({bool enableLogger: false}) {
         group("DECIMAL [fraction digits = ${DECIMAL_FRACTION_DIGITS}]", () {
           test("(positive)", () {
             Object input = 3.123451234512345;
-            TypeSpec type = new TypeSpec(DataType.DECIMAL);
+            TypeSpec type = new TypeSpec(DataType.decimal);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -527,7 +527,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -3.123451234512345;
-            TypeSpec type = new TypeSpec(DataType.DECIMAL);
+            TypeSpec type = new TypeSpec(DataType.decimal);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -540,7 +540,7 @@ main({bool enableLogger: false}) {
         group("VARINT", () {
           test("(positive)", () {
             final input = BigInt.parse('12345678901234567890123');
-            TypeSpec type = new TypeSpec(DataType.VARINT);
+            TypeSpec type = new TypeSpec(DataType.varint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -550,7 +550,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             final input = BigInt.parse('-987677654324167384628746291873912873');
-            TypeSpec type = new TypeSpec(DataType.VARINT);
+            TypeSpec type = new TypeSpec(DataType.varint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -563,8 +563,8 @@ main({bool enableLogger: false}) {
       group("COLLECTIONS:", () {
         test("SET", () {
           Object input = new Set.from([-2, -1, 0, 1, 2]);
-          TypeSpec type = new TypeSpec(DataType.SET,
-              valueSubType: new TypeSpec(DataType.INT));
+          TypeSpec type = new TypeSpec(DataType.set,
+              valueSubType: new TypeSpec(DataType.int));
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -577,8 +577,8 @@ main({bool enableLogger: false}) {
             new DateTime.fromMillisecondsSinceEpoch(1455746327000),
             new DateTime.fromMillisecondsSinceEpoch(1455746327000)
           ];
-          TypeSpec type = new TypeSpec(DataType.LIST,
-              valueSubType: new TypeSpec(DataType.TIMESTAMP));
+          TypeSpec type = new TypeSpec(DataType.list,
+              valueSubType: new TypeSpec(DataType.timestamp));
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -591,9 +591,9 @@ main({bool enableLogger: false}) {
             "foo": new DateTime.fromMillisecondsSinceEpoch(1455746327000),
             "bar": new DateTime.fromMillisecondsSinceEpoch(1455746327000)
           };
-          TypeSpec type = new TypeSpec(DataType.MAP,
-              keySubType: new TypeSpec(DataType.TEXT),
-              valueSubType: new TypeSpec(DataType.TIMESTAMP));
+          TypeSpec type = new TypeSpec(DataType.map,
+              keySubType: new TypeSpec(DataType.text),
+              valueSubType: new TypeSpec(DataType.timestamp));
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -610,7 +610,7 @@ main({bool enableLogger: false}) {
       });
       test("UTF-8 STRING", () {
         Object input = "Test 123 AbC !@#ΤΕΣΤ";
-        TypeSpec type = new TypeSpec(DataType.TEXT);
+        TypeSpec type = new TypeSpec(DataType.text);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -620,7 +620,7 @@ main({bool enableLogger: false}) {
 
       test("ASCII STRING", () {
         Object input = "Test 123 AbC";
-        TypeSpec type = new TypeSpec(DataType.ASCII);
+        TypeSpec type = new TypeSpec(DataType.ascii);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -630,7 +630,7 @@ main({bool enableLogger: false}) {
 
       test("UUID", () {
         Object input = new Uuid.simple();
-        TypeSpec type = new TypeSpec(DataType.UUID);
+        TypeSpec type = new TypeSpec(DataType.uuid);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -640,7 +640,7 @@ main({bool enableLogger: false}) {
 
       test("TIMEUUID", () {
         Object input = new Uuid.timeBased();
-        TypeSpec type = new TypeSpec(DataType.TIMEUUID);
+        TypeSpec type = new TypeSpec(DataType.timeuuid);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -651,7 +651,7 @@ main({bool enableLogger: false}) {
       test("CUSTOM", () {
         Object input = new Uint8List.fromList(
             List<int>.generate(10, (int index) => index * 2));
-        TypeSpec type = new TypeSpec(DataType.CUSTOM);
+        TypeSpec type = new TypeSpec(DataType.custom);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -662,7 +662,7 @@ main({bool enableLogger: false}) {
       test("BLOB", () {
         Object input = new Uint8List.fromList(
             List<int>.generate(10, (int index) => index * 2));
-        TypeSpec type = new TypeSpec(DataType.BLOB);
+        TypeSpec type = new TypeSpec(DataType.blob);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -673,7 +673,7 @@ main({bool enableLogger: false}) {
       group("COUNTER", () {
         test("(positive)", () {
           Object input = 9223372036854775807;
-          TypeSpec type = new TypeSpec(DataType.COUNTER);
+          TypeSpec type = new TypeSpec(DataType.counter);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -683,7 +683,7 @@ main({bool enableLogger: false}) {
 
         test("(negative)", () {
           Object input = -1;
-          TypeSpec type = new TypeSpec(DataType.COUNTER);
+          TypeSpec type = new TypeSpec(DataType.counter);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -694,7 +694,7 @@ main({bool enableLogger: false}) {
 
       test("TIMESTAMP", () {
         Object input = new DateTime.fromMillisecondsSinceEpoch(1455746327000);
-        TypeSpec type = new TypeSpec(DataType.TIMESTAMP);
+        TypeSpec type = new TypeSpec(DataType.timestamp);
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =
             mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -705,7 +705,7 @@ main({bool enableLogger: false}) {
       group("BOOLEAN", () {
         test("(true)", () {
           Object input = true;
-          TypeSpec type = new TypeSpec(DataType.BOOLEAN);
+          TypeSpec type = new TypeSpec(DataType.boolean);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -715,7 +715,7 @@ main({bool enableLogger: false}) {
 
         test("(false)", () {
           Object input = false;
-          TypeSpec type = new TypeSpec(DataType.BOOLEAN);
+          TypeSpec type = new TypeSpec(DataType.boolean);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -727,7 +727,7 @@ main({bool enableLogger: false}) {
       group("BOOLEAN", () {
         test("(true)", () {
           Object input = true;
-          TypeSpec type = new TypeSpec(DataType.BOOLEAN);
+          TypeSpec type = new TypeSpec(DataType.boolean);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -737,7 +737,7 @@ main({bool enableLogger: false}) {
 
         test("(false)", () {
           Object input = false;
-          TypeSpec type = new TypeSpec(DataType.BOOLEAN);
+          TypeSpec type = new TypeSpec(DataType.boolean);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -749,7 +749,7 @@ main({bool enableLogger: false}) {
       group("INET:", () {
         test("(ipv4)", () {
           Object input = new InternetAddress("192.168.169.101");
-          TypeSpec type = new TypeSpec(DataType.INET);
+          TypeSpec type = new TypeSpec(DataType.inet);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -760,7 +760,7 @@ main({bool enableLogger: false}) {
         test("(ipv6)", () {
           Object input =
               new InternetAddress("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
-          TypeSpec type = new TypeSpec(DataType.INET);
+          TypeSpec type = new TypeSpec(DataType.inet);
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -773,7 +773,7 @@ main({bool enableLogger: false}) {
         group("INT", () {
           test("(positive)", () {
             Object input = 2147483647;
-            TypeSpec type = new TypeSpec(DataType.INT);
+            TypeSpec type = new TypeSpec(DataType.int);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -783,7 +783,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -21474836;
-            TypeSpec type = new TypeSpec(DataType.INT);
+            TypeSpec type = new TypeSpec(DataType.int);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -795,7 +795,7 @@ main({bool enableLogger: false}) {
         group("BIGINT", () {
           test("(positive)", () {
             Object input = 9223372036854775807;
-            TypeSpec type = new TypeSpec(DataType.BIGINT);
+            TypeSpec type = new TypeSpec(DataType.bigint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -805,7 +805,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -922036854775807;
-            TypeSpec type = new TypeSpec(DataType.BIGINT);
+            TypeSpec type = new TypeSpec(DataType.bigint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -817,7 +817,7 @@ main({bool enableLogger: false}) {
         group("FLOAT", () {
           test("(positive)", () {
             Object input = 3.141516;
-            TypeSpec type = new TypeSpec(DataType.FLOAT);
+            TypeSpec type = new TypeSpec(DataType.float);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -827,7 +827,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -3.12345;
-            TypeSpec type = new TypeSpec(DataType.FLOAT);
+            TypeSpec type = new TypeSpec(DataType.float);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -839,7 +839,7 @@ main({bool enableLogger: false}) {
         group("DOUBLE", () {
           test("(positive)", () {
             Object input = 3.141516;
-            TypeSpec type = new TypeSpec(DataType.DOUBLE);
+            TypeSpec type = new TypeSpec(DataType.double);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -849,7 +849,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -3.12345;
-            TypeSpec type = new TypeSpec(DataType.DOUBLE);
+            TypeSpec type = new TypeSpec(DataType.double);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -861,7 +861,7 @@ main({bool enableLogger: false}) {
         group("DECIMAL [fraction digits = ${DECIMAL_FRACTION_DIGITS}]", () {
           test("(positive)", () {
             Object input = 3.123451234512345;
-            TypeSpec type = new TypeSpec(DataType.DECIMAL);
+            TypeSpec type = new TypeSpec(DataType.decimal);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -872,7 +872,7 @@ main({bool enableLogger: false}) {
 
           test("(negative)", () {
             Object input = -3.123451234512345;
-            TypeSpec type = new TypeSpec(DataType.DECIMAL);
+            TypeSpec type = new TypeSpec(DataType.decimal);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -885,7 +885,7 @@ main({bool enableLogger: false}) {
         group("VARINT", () {
           test("(positive)", () {
             Object input = BigInt.parse('12345678901234567890123');
-            TypeSpec type = new TypeSpec(DataType.VARINT);
+            TypeSpec type = new TypeSpec(DataType.varint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -896,7 +896,7 @@ main({bool enableLogger: false}) {
           test("(negative)", () {
             Object input =
                 BigInt.parse('-987677654324167384628746291873912873');
-            TypeSpec type = new TypeSpec(DataType.VARINT);
+            TypeSpec type = new TypeSpec(DataType.varint);
             encoder.writeTypedValue('test', input, typeSpec: type, size: size);
             Object? output =
                 mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -909,8 +909,8 @@ main({bool enableLogger: false}) {
       group("COLLECTIONS:", () {
         test("SET", () {
           Object input = new Set.from([-2, -1, 0, 1, 2]);
-          TypeSpec type = new TypeSpec(DataType.SET,
-              valueSubType: new TypeSpec(DataType.INT));
+          TypeSpec type = new TypeSpec(DataType.set,
+              valueSubType: new TypeSpec(DataType.int));
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -923,8 +923,8 @@ main({bool enableLogger: false}) {
             new DateTime.fromMillisecondsSinceEpoch(1455746327000),
             new DateTime.fromMillisecondsSinceEpoch(1455746327000)
           ];
-          TypeSpec type = new TypeSpec(DataType.LIST,
-              valueSubType: new TypeSpec(DataType.TIMESTAMP));
+          TypeSpec type = new TypeSpec(DataType.list,
+              valueSubType: new TypeSpec(DataType.timestamp));
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -937,9 +937,9 @@ main({bool enableLogger: false}) {
             "foo": new DateTime.fromMillisecondsSinceEpoch(1455746327000),
             "bar": new DateTime.fromMillisecondsSinceEpoch(1455746327000)
           };
-          TypeSpec type = new TypeSpec(DataType.MAP,
-              keySubType: new TypeSpec(DataType.TEXT),
-              valueSubType: new TypeSpec(DataType.TIMESTAMP));
+          TypeSpec type = new TypeSpec(DataType.map,
+              keySubType: new TypeSpec(DataType.text),
+              valueSubType: new TypeSpec(DataType.timestamp));
           encoder.writeTypedValue('test', input, typeSpec: type, size: size);
           Object? output =
               mock.createDecoder(encoder).readTypedValue(type, size: size);
@@ -962,22 +962,22 @@ main({bool enableLogger: false}) {
             }
           }
         };
-        TypeSpec intType = new TypeSpec(DataType.INT);
-        TypeSpec dateType = new TypeSpec(DataType.TIMESTAMP);
-        TypeSpec stringType = new TypeSpec(DataType.TEXT);
-        TypeSpec phoneType = new TypeSpec(DataType.UDT)
+        TypeSpec intType = new TypeSpec(DataType.int);
+        TypeSpec dateType = new TypeSpec(DataType.timestamp);
+        TypeSpec stringType = new TypeSpec(DataType.text);
+        TypeSpec phoneType = new TypeSpec(DataType.udt)
           ..udtFields["prefix"] = intType
           ..udtFields["phone"] = stringType;
-        TypeSpec tagType = new TypeSpec(DataType.UDT)
+        TypeSpec tagType = new TypeSpec(DataType.udt)
           ..udtFields["when"] = dateType
           ..udtFields["labels"] =
-              new TypeSpec(DataType.LIST, valueSubType: stringType);
+              new TypeSpec(DataType.list, valueSubType: stringType);
 
-        TypeSpec type = new TypeSpec(DataType.UDT)
+        TypeSpec type = new TypeSpec(DataType.udt)
           ..udtFields["address"] = stringType
           ..udtFields["phones"] =
-              new TypeSpec(DataType.LIST, valueSubType: phoneType)
-          ..udtFields["tags"] = new TypeSpec(DataType.MAP,
+              new TypeSpec(DataType.list, valueSubType: phoneType)
+          ..udtFields["tags"] = new TypeSpec(DataType.map,
               keySubType: stringType, valueSubType: tagType);
 
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
@@ -993,10 +993,10 @@ main({bool enableLogger: false}) {
           3.14,
           new DateTime.fromMillisecondsSinceEpoch(1455746327000)
         ]);
-        TypeSpec type = new TypeSpec(DataType.TUPLE)
-          ..tupleFields.add(new TypeSpec(DataType.TEXT))
-          ..tupleFields.add(new TypeSpec(DataType.DOUBLE))
-          ..tupleFields.add(new TypeSpec(DataType.TIMESTAMP));
+        TypeSpec type = new TypeSpec(DataType.tuple)
+          ..tupleFields.add(new TypeSpec(DataType.text))
+          ..tupleFields.add(new TypeSpec(DataType.double))
+          ..tupleFields.add(new TypeSpec(DataType.timestamp));
 
         encoder.writeTypedValue('test', input, typeSpec: type, size: size);
         Object? output =

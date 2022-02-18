@@ -17,7 +17,6 @@ main({bool enableLogger: false}) {
   List<Type> enumClasses = [
     BatchType,
     Consistency,
-    DataType,
     ErrorCode,
     EventRegistrationType,
     EventType,
