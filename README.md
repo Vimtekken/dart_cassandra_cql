@@ -1,5 +1,13 @@
 # Dart Driver for Apache Cassandra
 
+## Repository Moved
+The development of this driver has moved to a [new repo](https://gitlab.com/binary_cortex/cassandra_scylla_cortex) on gitlab.
+All future development will be there. If you wish to see the latest please visit the new repo.
+No new developments will be made in this repository. Soon this repository will be archived and
+put into a read only state. 
+
+## Old Readme:
+
 Dart driver for [Apache Cassandra](http://Cassandra.apache.org/) that supports Cassandra Query Language version [3.0+](http://www.datastax.com/documentation/cql/3.1/cql/cql_intro_c.html) (CQL3). 
 
 The driver has a small dependency tree and implements Cassandra binary protocol (versions 2 and 3) for communicating with Cassandra servers. The protocol and CQL versions to be used are both configurable by the user.
